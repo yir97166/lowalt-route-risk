@@ -1,0 +1,115 @@
+"""绘图：Day 1 的人口热力图（含起降点与示意禁飞区）。"""
+from __future__ import annotations
+
+import os
+from pathlib import Path
+
+# OneDrive / 非 ASCII 用户名下 matplotlib 默认缓存目录可能不可写，固定到项目内。
+_MPL_CACHE = Path(__file__).resolve().parents[1] / ".cache" / "matplotlib"
+_MPL_CACHE.mkdir(parents=True, exist_ok=True)
+if not os.environ.get("MPLCONFIGDIR"):
+    os.environ["MPLCONFIGDIR"] = str(_MPL_CACHE)
+
+import matplotlib
+
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.lines import Line2D
+from matplotlib.patches import Patch, Polygon as MplPolygon
+from matplotlib.ticker import FuncFormatter
+from pyproj import Transformer
+
+from .config import Config
+from .grid import Grid, edges_to_lonlat
+
+plt.rcParams["font.sans-serif"] = ["Microsoft YaHei", "SimHei", "DejaVu Sans"]
+plt.rcParams["axes.unicode_minus"] = False
+
+
+def _circle_lonlat(cfg: Config, center: tuple[float, float], radius_m: float) -> np.ndarray:
+    to_metric = Transformer.from_crs(cfg.crs_input, cfg.crs_metric, always_xy=True)
+    to_geo = Transformer.from_crs(cfg.crs_metric, cfg.crs_input, always_xy=True)
+    cx, cy = to_metric.transform(center[0], center[1])
+    theta = np.linspace(0.0, 2.0 * np.pi, 180)
+    lons, lats = to_geo.transform(cx + radius_m * np.cos(theta), cy + radius_m * np.sin(theta))
+    return np.column_stack([lons, lats])
+
+
+def plot_population_map(
+    cfg: Config,
+    grid: Grid,
+    pop: np.ndarray,
+    risk: np.ndarray,
+    out_path: str | Path,
+    source_label: str,
+    od_index: int = 0,
+) -> Path:
+    """画 200 m 网格人口热力图，标出起降点与示意禁飞区。"""
+    lon_e, lat_e = edges_to_lonlat(grid, cfg.crs_input)
+    p95 = np.percentile(pop[pop > 0], cfg.risk.population_percentile) if np.any(pop > 0) else 0.0
+    shown = np.log10(pop + 1.0)
+    lat_mid = float(np.mean(lat_e))
+
+    fig, ax = plt.subplots(figsize=(11, 8.2), dpi=160)
+    mesh = ax.pcolormesh(lon_e, lat_e, shown, cmap="magma", shading="flat")
+    cbar = fig.colorbar(mesh, ax=ax, shrink=0.82, pad=0.02)
+    cbar.set_label("人口（每 200 m 格，log10 显示）", fontsize=10)
+    cbar.ax.yaxis.set_major_formatter(
+        FuncFormatter(lambda v, _: f"{10 ** v:,.0f}" if v >= 0 else "")
+    )
+
+    minx, miny, maxx, maxy = cfg.bbox
+    ax.set_xlim(minx, maxx)
+    ax.set_ylim(miny, maxy)
+    # 网格按 200 m 外扩到 bbox 之外；显示时裁回 AOI，避免阶梯状边缘。
+    mesh.set_clip_path(MplPolygon(
+        [(minx, miny), (maxx, miny), (maxx, maxy), (minx, maxy)],
+        closed=True, transform=ax.transData))
+
+    zone_handles = []
+    for z in cfg.no_fly:
+        if z.kind == "circle":
+            pts = _circle_lonlat(cfg, z.center, z.radius_m)  # type: ignore[arg-type]
+            ax.plot(pts[:, 0], pts[:, 1], color="#ff4d4d", lw=1.8, ls="--")
+            zone_handles.append(Line2D([], [], color="#ff4d4d", lw=1.8, ls="--",
+                                       label="禁飞区（示意）：宝安机场 5 km 圆"))
+        else:
+            verts = np.asarray(z.vertices)  # 已是 WGS84 经纬度，无需投影
+            ax.add_patch(MplPolygon(verts, closed=True, facecolor="white", alpha=0.25,
+                                    edgecolor="white", lw=1.6, ls="--"))
+    zone_handles.append(Patch(facecolor="white", alpha=0.5, edgecolor="white", ls="--",
+                              label="禁飞区（示意）：敏感区多边形"))
+
+    od = cfg.od_pairs[od_index]
+    ax.scatter(*od.origin, marker="^", s=170, c="#20d020", edgecolor="black", zorder=6)
+    ax.scatter(*od.destination, marker="v", s=170, c="#2080ff", edgecolor="black", zorder=6)
+    handles = [
+        Line2D([], [], marker="^", ls="", markersize=11, markerfacecolor="#20d020",
+               markeredgecolor="black", label="起点 O（北站）"),
+        Line2D([], [], marker="v", ls="", markersize=11, markerfacecolor="#2080ff",
+               markeredgecolor="black", label="终点 D（深圳湾）"),
+        *zone_handles,
+    ]
+    ax.legend(handles=handles, loc="lower left", fontsize=9, framealpha=0.9)
+
+    ax.set_title(
+        f"深圳中西部人口热力图 · 200 m 网格（{source_label}）\n"
+        f"AOI {grid.cols}×{grid.rows} 格 · 高度 60 m 风险面 · 禁飞区 illustrative only",
+        fontsize=13,
+    )
+    ax.set_xlabel("经度 (°E)")
+    ax.set_ylabel("纬度 (°N)")
+    ax.set_aspect(1.0 / max(np.cos(np.radians(lat_mid)), 1e-6))
+    ax.text(0.99, 0.01, "数据仅用于方法演示，非官方禁飞区，不构成运行依据",
+            transform=ax.transAxes, ha="right", va="bottom", fontsize=8, color="white",
+            bbox=dict(boxstyle="round", fc="black", alpha=0.55, ec="none"))
+
+    out_path = Path(out_path)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    fig.tight_layout()
+    fig.savefig(out_path)
+    plt.close(fig)
+
+    print(f"p95(非零人口)={p95:.2f} · 风险面 max={risk.max():.3f} · 非零格={int((pop > 0).sum())}")
+    return out_path

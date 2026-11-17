@@ -1,0 +1,62 @@
+project: lowalt-route-risk
+crs_input: EPSG:4326
+crs_metric: EPSG:32649
+
+aoi:
+  name: shenzhen_central_west
+  bbox: [113.85, 22.48, 114.10, 22.65]   # minx, miny, maxx, maxy (WGS84)
+
+grid:
+  cell_size_m: 200
+  altitudes_m: [60, 90, 120]
+  connectivity: 8
+  vertical_cost_m: 50
+
+risk:
+  population_weight: 1.0
+  severity: 1.0
+  shelter: 0.30
+  population_percentile: 95
+  altitude_factor:
+    60: 1.00
+    90: 0.85
+    120: 0.70
+  lambda_values: [0.0, 0.5, 1.0, 1.5, 2.0]
+  lambda_default: 1.0
+  penalty: 1000000.0
+
+data:
+  population_tif: data/raw/worldpop/chn_ppp_2020_100m.tif
+  synthetic_tif: data/processed/synthetic_population.tif
+
+no_fly:
+  - name: szx_airport_buffer_5km
+    type: circle
+    center: [113.8107, 22.6393]
+    radius_m: 5000
+    note: illustrative only, not official
+  - name: wutongshan_area
+    type: polygon
+    vertices: [[113.98, 22.60], [114.00, 22.60], [114.00, 22.62], [113.98, 22.62]]
+    note: illustrative only, not official
+  - name: shenzhen_reservoir
+    type: polygon
+    vertices: [[114.00, 22.57], [114.02, 22.57], [114.02, 22.59], [114.00, 22.59]]
+    note: illustrative only, not official
+
+od_pairs:
+  - name: north_station_to_shenzhen_bay
+    origin: [114.0295, 22.6103]
+    destination: [113.9450, 22.5170]
+  - name: futian_cbd_to_airport_east
+    origin: [114.0579, 22.5431]
+    destination: [113.8700, 22.6000]
+  - name: nanshan_to_baoan
+    origin: [113.9300, 22.5300]
+    destination: [113.8800, 22.5900]
+  - name: luohu_to_futian
+    origin: [114.0950, 22.5480]
+    destination: [114.0300, 22.5400]
+  - name: baoan_center_to_nanshan
+    origin: [113.8830, 22.5550]
+    destination: [113.9500, 22.5200]
