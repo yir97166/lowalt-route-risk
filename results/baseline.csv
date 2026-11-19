@@ -1,0 +1,6 @@
+od,lambda,reachable,graph_nodes,graph_edges,graph_components,start_row,start_col,start_offset_m,dest_row,dest_col,dest_offset_m,n_cells,length_m,straight_m,detour_ratio,hard_crossings,min_clearance_m,valid
+north_station_to_shenzhen_bay,0.0,True,12268,48251,1,23,91,66.5,75,48,91.3,59,14665.2,13495.2,1.0867,0,165.3,True
+futian_cbd_to_airport_east,0.0,True,12268,48251,1,60,106,68.9,30,9,35.5,98,21885.3,20306.6,1.0777,0,922.1,True
+nanshan_to_baoan,0.0,True,12268,48251,1,68,40,107.7,36,14,96.5,33,8553.9,8246.2,1.0373,0,8305.1,True
+luohu_to_futian,0.0,True,12268,48251,1,57,125,91.7,62,92,70.0,34,7014.2,6675.3,1.0508,0,3261.5,True
+baoan_center_to_nanshan,0.0,True,12268,48251,1,55,16,22.9,74,51,83.6,36,8574.0,7964.9,1.0765,0,7588.7,True

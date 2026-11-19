@@ -37,6 +37,88 @@ def _circle_lonlat(cfg: Config, center: tuple[float, float], radius_m: float) ->
     return np.column_stack([lons, lats])
 
 
+def plot_route(
+    cfg: Config,
+    grid: Grid,
+    pop: np.ndarray,
+    cells: list[tuple[int, int]],
+    out_path: str | Path,
+    source_label: str = "合成数据",
+) -> Path:
+    """人口底图上画一条路线（格心序列），标起终点。"""
+    lon_e, lat_e = edges_to_lonlat(grid, cfg.crs_input)
+    shown = np.log10(pop + 1.0)
+    minx, miny, maxx, maxy = cfg.bbox
+    lat_mid = float(np.mean(lat_e))
+
+    fig, ax = plt.subplots(figsize=(11, 8.2), dpi=160)
+    mesh = ax.pcolormesh(lon_e, lat_e, shown, cmap="magma", shading="flat")
+    cbar = fig.colorbar(mesh, ax=ax, shrink=0.82, pad=0.02)
+    cbar.set_label("人口（每 200 m 格，log10 显示）", fontsize=10)
+    cbar.ax.yaxis.set_major_formatter(
+        FuncFormatter(lambda v, _: f"{10 ** v:,.0f}" if v >= 0 else "")
+    )
+    mesh.set_clip_path(MplPolygon(
+        [(minx, miny), (maxx, miny), (maxx, maxy), (minx, maxy)],
+        closed=True, transform=ax.transData))
+    ax.set_xlim(minx, maxx)
+    ax.set_ylim(miny, maxy)
+
+    to_geo = Transformer.from_crs(cfg.crs_metric, cfg.crs_input, always_xy=True)
+
+    def _ring(g) -> np.ndarray:
+        xs, ys = np.asarray(g.exterior.coords).T
+        lons, lats = to_geo.transform(xs, ys)
+        return np.column_stack([lons, lats])
+
+    for z, (_, geom) in zip(cfg.no_fly, zone_geometries(cfg)):
+        ring = _ring(geom)
+        if z.hard:
+            ax.add_patch(MplPolygon(ring, closed=True, facecolor="white", alpha=0.25,
+                                    edgecolor="white", lw=1.6, ls="--", zorder=3))
+        else:
+            ax.plot(ring[:, 0], ring[:, 1], color="#ff4d4d", lw=1.5, ls="--", zorder=3)
+
+    xs = [float(grid.xs[c]) for _, c in cells]
+    ys = [float(grid.ys[r]) for r, _ in cells]
+    lons, lats = to_geo.transform(xs, ys)
+    ax.plot(lons, lats, color="black", lw=4.2, solid_capstyle="round", zorder=5)
+    ax.plot(lons, lats, color="#00e5ff", lw=2.2, solid_capstyle="round", zorder=6)
+    ax.scatter(lons[0], lats[0], marker="^", s=190, c="#20d020", edgecolor="black", zorder=7)
+    ax.scatter(lons[-1], lats[-1], marker="v", s=190, c="#2080ff", edgecolor="black", zorder=7)
+
+    handles = [
+        Line2D([], [], color="#00e5ff", lw=2.5, label="最短可行路线（λ = 0）"),
+        Line2D([], [], marker="^", ls="", markersize=11, markerfacecolor="#20d020",
+               markeredgecolor="black", label="起点 O（北站）"),
+        Line2D([], [], marker="v", ls="", markersize=11, markerfacecolor="#2080ff",
+               markeredgecolor="black", label="终点 D（深圳湾）"),
+        Patch(facecolor="white", alpha=0.5, edgecolor="white", ls="--",
+              label="硬禁飞区（示意）"),
+        Line2D([], [], color="#ff4d4d", lw=1.5, ls="--",
+               label="机场净空保护区（需审批）"),
+    ]
+    ax.legend(handles=handles, loc="lower left", fontsize=9, framealpha=0.9)
+    ax.set_title(
+        f"最短可行路线 baseline · 200 m 网格（{source_label}）\n"
+        f"AOI {grid.cols}×{grid.rows} 格 · 8 邻接 Dijkstra",
+        fontsize=13,
+    )
+    ax.set_xlabel("经度 (°E)")
+    ax.set_ylabel("纬度 (°N)")
+    ax.set_aspect(1.0 / max(np.cos(np.radians(lat_mid)), 1e-6))
+    ax.text(0.99, 0.01, "数据仅用于方法演示，不构成运行依据",
+            transform=ax.transAxes, ha="right", va="bottom", fontsize=8, color="white",
+            bbox=dict(boxstyle="round", fc="black", alpha=0.55, ec="none"))
+
+    out_path = Path(out_path)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    fig.tight_layout()
+    fig.savefig(out_path)
+    plt.close(fig)
+    return out_path
+
+
 def plot_population_map(
     cfg: Config,
     grid: Grid,
