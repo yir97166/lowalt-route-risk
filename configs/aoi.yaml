@@ -63,21 +63,26 @@ no_fly:
 
 od_pairs:
   # 坐标均为手工设定的近似 WGS84 值，仅用于方法演示；坐标来源与精度在
-  # docs/decisions.md 记录，Day 3 需用地图核对并记录 snap_offset_m。
-  # 核心 OD：深圳北站——深圳湾（高铁站到滨海商务区的中短途接驳情景）。
+  # docs/decisions.md 记录，Day 3 已核对（南山起点偏移 107.7 m，用户确认暂不修正）。
+  # 任务背景由用户 2026-11-19 确认，见 docs/decisions.md 第 12 条。
+  # 核心 OD：深圳北站——深圳湾（高铁乘客接驳）。
   - name: north_station_to_shenzhen_bay
     origin: [114.0295, 22.6103]
     destination: [113.9450, 22.5170]
   # 以下 4 组为 Day 10 扩展批量实验，代表性说明见 PLAN.md 与报告。
+  # 福田 CBD——宝安机场东：城市候机楼送机服务（值机/行李/旅客接驳）。
   - name: futian_cbd_to_airport_east
     origin: [114.0579, 22.5431]
     destination: [113.8700, 22.6000]
+  # 南山——宝安：医疗样本急送（病理/血样冷链，30 分钟级时效）。
   - name: nanshan_to_baoan
     origin: [113.9300, 22.5300]
     destination: [113.8800, 22.5900]
+  # 罗湖——福田：跨境快件（口岸到福田保税区/华强北急件）。
   - name: luohu_to_futian
     origin: [114.0950, 22.5480]
     destination: [114.0300, 22.5400]
+  # 宝安中心——南山：商务通勤（宝安中心到后海总部基地，eVTOL 快线）。
   - name: baoan_center_to_nanshan
     origin: [113.8830, 22.5550]
     destination: [113.9500, 22.5200]

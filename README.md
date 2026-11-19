@@ -159,6 +159,9 @@ python -m venv .venv
   这些数字只用于报告「需审批」提示，不作合规判断。
 - **坐标**：5 组 OD 仍是手工近似；南山—宝安起点吸附 107.7 m（>100 m 阈值），
   用户 2026-11-19 确认「先这样」，Day 3 记录在案，后续若拿到准确坐标再改。
+- **场景**（用户 2026-11-19 确认）：北站—深圳湾=高铁乘客接驳；福田 CBD—机场东=
+  城市候机楼送机；南山—宝安=医疗样本冷链急送；罗湖—福田=跨境快件；
+  宝安中心—南山=商务通勤。
 - **产出**：`src/graph.py`、`src/router.py`、`scripts/make_baseline.py`、
   `tests/test_graph.py`（5 项）、`results/baseline_path.csv`、
   `figures/02_shortest_path.png`。
