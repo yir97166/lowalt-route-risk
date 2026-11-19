@@ -26,7 +26,13 @@ sys.path.insert(0, str(ROOT))
 from src.config import load_config  # noqa: E402
 from src.grid import build_grid  # noqa: E402
 from src.graph import build_graph, graph_stats  # noqa: E402
-from src.mask import blocked_mask, nearest_free_cell, path_to_lonlat, validate_path  # noqa: E402
+from src.mask import (  # noqa: E402
+    blocked_mask,
+    nearest_free_cell,
+    path_to_lonlat,
+    restricted_mask,
+    validate_path,
+)
 from src.router import plan_route  # noqa: E402
 from src.viz import plot_route  # noqa: E402
 
@@ -55,6 +61,7 @@ def main() -> int:
     cfg = load_config(args.config)
     grid = build_grid(cfg)
     blocked = blocked_mask(cfg, grid)
+    restricted = restricted_mask(cfg, grid)
     graph = build_graph(grid, blocked, cfg.grid.connectivity)
     stats = graph_stats(graph)
     print(f"图：{stats['nodes']:,} 节点 / {stats['edges']:,} 边 / "
@@ -75,9 +82,10 @@ def main() -> int:
                          "dest_offset_m": round(d.offset_m, 1)})
             continue
         check = validate_path(list(route.cells), grid, cfg, blocked=blocked)
+        n_in_zone = int(sum(bool(restricted[r, c]) for r, c in route.cells))
         print(f"{od.name}: {len(route.cells)} 格，{route.length_m / 1000:.3f} km，"
               f"绕行率 {route.detour_ratio:.3f}，穿越 {check.crossings}，ok={check.ok}"
-              f"（吸附 {s.offset_m:.1f}/{d.offset_m:.1f} m）")
+              f"（吸附 {s.offset_m:.1f}/{d.offset_m:.1f} m，净空区内 {n_in_zone} 格）")
         if not check.ok:
             print("  问题：" + "；".join(check.issues))
         rows.append({
@@ -99,6 +107,8 @@ def main() -> int:
             "detour_ratio": round(route.detour_ratio, 4),
             "hard_crossings": check.crossings,
             "min_clearance_m": round(check.min_clearance_m, 1),
+            "restricted_cells": n_in_zone,
+            "restricted_share": round(n_in_zone / len(route.cells), 4),
             "valid": check.ok,
         })
         if core_route is None:
