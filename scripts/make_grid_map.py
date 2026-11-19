@@ -36,7 +36,10 @@ from src.grid import build_grid, edges_to_lonlat  # noqa: E402
 from src.mask import (  # noqa: E402
     blocked_mask,
     nearest_free_cell,
+    restricted_mask,
+    zone_geometries,
 )
+from pyproj import Transformer  # noqa: E402
 
 plt.rcParams["font.sans-serif"] = ["Microsoft YaHei", "SimHei", "DejaVu Sans"]
 plt.rcParams["axes.unicode_minus"] = False
@@ -52,18 +55,24 @@ def main() -> int:
     cfg = load_config(args.config)
     grid = build_grid(cfg)
     blocked = blocked_mask(cfg, grid)
+    restricted = restricted_mask(cfg, grid)
     lon_e, lat_e = edges_to_lonlat(grid, cfg.crs_input)
 
     total = int(blocked.size)
     n_blocked = int(blocked.sum())
+    n_restricted = int(restricted.sum())
     print(f"网格：{grid.rows} 行 × {grid.cols} 列，共 {total:,} 格")
     print(f"禁飞硬掩膜：不可通行 {n_blocked:,} 格（{n_blocked / total:.2%}），"
           f"可通行 {total - n_blocked:,} 格")
+    print(f"机场净空保护区（受控/需审批）：覆盖 {n_restricted:,} 格"
+          f"（{n_restricted / total:.2%}）")
 
-    # 每个禁飞区单独统计（用同一条判定规则）
+    # 每个硬禁飞区单独统计（走廊是受控区，单独统计）
     from dataclasses import replace
 
     for zone in cfg.no_fly:
+        if not zone.hard:
+            continue
         single = blocked_mask(replace(cfg, no_fly=(zone,)), grid)
         print(f"  - {zone.name}: {int(single.sum()):,} 格")
 
@@ -74,11 +83,13 @@ def main() -> int:
         s_d = nearest_free_cell(cfg, grid, blocked, *od.destination)
         snap_rows.append(
             dict(od=od.name, end="origin", row=s_o.row, col=s_o.col,
-                 offset_m=round(s_o.offset_m, 1), lon=s_o.lon, lat=s_o.lat)
+                 offset_m=round(s_o.offset_m, 1), lon=s_o.lon, lat=s_o.lat,
+                 in_restricted=bool(restricted[s_o.row, s_o.col]))
         )
         snap_rows.append(
             dict(od=od.name, end="destination", row=s_d.row, col=s_d.col,
-                 offset_m=round(s_d.offset_m, 1), lon=s_d.lon, lat=s_d.lat)
+                 offset_m=round(s_d.offset_m, 1), lon=s_d.lon, lat=s_d.lat,
+                 in_restricted=bool(restricted[s_d.row, s_d.col]))
         )
         print(f"{od.name}: 起点吸附 {s_o.offset_m:.1f} m，终点吸附 {s_d.offset_m:.1f} m")
     snap_df = pd.DataFrame(snap_rows)
@@ -107,17 +118,22 @@ def main() -> int:
     ax.add_collection(LineCollection(segs, colors="black", linewidths=0.15, alpha=0.18,
                                      zorder=1))
 
-    # 禁飞区边界
-    for zone in cfg.no_fly:
-        if zone.kind == "circle":
-            from src.viz import _circle_lonlat
+    # 空域约束：硬禁飞画边界，机场净空走廊画半透明覆盖
+    to_geo = Transformer.from_crs(cfg.crs_metric, cfg.crs_input, always_xy=True)
 
-            pts = _circle_lonlat(cfg, zone.center, zone.radius_m)  # type: ignore[arg-type]
-            ax.plot(pts[:, 0], pts[:, 1], color="#b2182b", lw=1.8, ls="--", zorder=4)
-        else:
-            verts = np.asarray(zone.vertices)
-            ax.add_patch(MplPolygon(verts, closed=True, fill=False, edgecolor="#b2182b",
+    def _ring(geom) -> np.ndarray:
+        xs, ys = np.asarray(geom.exterior.coords).T
+        lons, lats = to_geo.transform(xs, ys)
+        return np.column_stack([lons, lats])
+
+    for zone, (_, geom) in zip(cfg.no_fly, zone_geometries(cfg)):
+        ring = _ring(geom)
+        if zone.hard:
+            ax.add_patch(MplPolygon(ring, closed=True, fill=False, edgecolor="#b2182b",
                                     lw=1.8, ls="--", zorder=4))
+        else:
+            ax.add_patch(MplPolygon(ring, closed=True, facecolor="#f6a15a", alpha=0.16,
+                                    edgecolor="#b2182b", lw=1.8, ls="--", zorder=2))
 
     # 起终点与吸附点
     core = cfg.od_pairs[0]
@@ -125,9 +141,10 @@ def main() -> int:
     ax.scatter(*core.destination, marker="v", s=170, c="#2080ff", edgecolor="black", zorder=6)
 
     handles = [
-        Patch(facecolor="#d73027", label=f"不可通行格（{n_blocked:,}）"),
-        Patch(facecolor="#f4f4f4", label=f"可通行格（{total - n_blocked:,}）"),
-        Line2D([], [], color="#b2182b", lw=1.8, ls="--", label="禁飞区（示意）"),
+        Patch(facecolor="#d73027", label=f"硬禁飞格（{n_blocked:,}）"),
+        Patch(facecolor="#f6a15a", alpha=0.35,
+              label=f"机场净空保护区（{n_restricted / total:.0%}，需审批）"),
+        Line2D([], [], color="#b2182b", lw=1.8, ls="--", label="约束边界（示意）"),
         Line2D([], [], marker="^", ls="", markersize=11, markerfacecolor="#20d020",
                markeredgecolor="black", label="起点 O（北站）"),
         Line2D([], [], marker="v", ls="", markersize=11, markerfacecolor="#2080ff",
@@ -135,16 +152,16 @@ def main() -> int:
     ]
     ax.legend(handles=handles, loc="lower left", fontsize=9, framealpha=0.92)
     ax.set_title(
-        f"200 m 网格与禁飞硬掩膜（示意）\n"
-        f"AOI {grid.cols}×{grid.rows} · 不可通行 {n_blocked:,} 格（{n_blocked / total:.2%}）"
-        f" · 判定：格子与禁飞区有任何重叠即阻挡",
+        f"200 m 网格与空域约束\n"
+        f"AOI {grid.cols}×{grid.rows} · 硬禁飞 {n_blocked:,} 格（{n_blocked / total:.2%}）"
+        f" · 净空区 {n_restricted / total:.0%} · 判定：格子与硬禁飞区有重叠即阻挡",
         fontsize=12.5,
     )
     ax.set_xlabel("经度 (°E)")
     ax.set_ylabel("纬度 (°N)")
     lat_mid = float(np.mean(lat_e))
     ax.set_aspect(1.0 / max(np.cos(np.radians(lat_mid)), 1e-6))
-    ax.text(0.99, 0.01, "禁飞区为手工示意，非官方划设；不构成运行依据",
+    ax.text(0.99, 0.01, "净空保护区按官方尺寸绘制（受控/需审批）；两个多边形为手工示意",
             transform=ax.transAxes, ha="right", va="bottom", fontsize=8, color="white",
             bbox=dict(boxstyle="round", fc="black", alpha=0.55, ec="none"))
 

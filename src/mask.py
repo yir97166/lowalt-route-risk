@@ -20,14 +20,34 @@ from .config import Config
 from .grid import Grid, point_to_metric
 
 
+def _corridor_geometry(cfg: Config, z) -> Polygon:
+    """跑道净空走廊：沿真方位拉出「跑道长 + 端外延伸」×「2×半宽」的矩形。"""
+    to_metric = Transformer.from_crs(cfg.crs_input, cfg.crs_metric, always_xy=True)
+    cx, cy = to_metric.transform(z.center[0], z.center[1])  # type: ignore[index]
+    b = np.deg2rad(float(z.bearing_deg))
+    ax, ay = float(np.sin(b)), float(np.cos(b))        # 沿跑道方向（北为 0°，顺时针）
+    px, py = float(np.cos(b)), float(-np.sin(b))       # 右手法向
+    half_len = float(z.runway_length_m) / 2.0 + float(z.end_extension_m)
+    hw = float(z.half_width_m)
+    corners = [
+        (cx + ax * half_len + px * hw, cy + ay * half_len + py * hw),
+        (cx + ax * half_len - px * hw, cy + ay * half_len - py * hw),
+        (cx - ax * half_len - px * hw, cy - ay * half_len - py * hw),
+        (cx - ax * half_len + px * hw, cy - ay * half_len + py * hw),
+    ]
+    return Polygon(corners)
+
+
 def zone_geometries(cfg: Config) -> list[tuple[str, BaseGeometry]]:
-    """把禁飞区转成 UTM 米制几何。圆形按半径 buffer，多边形逐点投影。"""
+    """把空域约束转成 UTM 米制几何（含 hard=False 的受控区）。"""
     to_metric = Transformer.from_crs(cfg.crs_input, cfg.crs_metric, always_xy=True)
     out: list[tuple[str, BaseGeometry]] = []
     for z in cfg.no_fly:
         if z.kind == "circle":
             cx, cy = to_metric.transform(z.center[0], z.center[1])  # type: ignore[index]
             geom: BaseGeometry = Point(cx, cy).buffer(float(z.radius_m), quad_segs=64)
+        elif z.kind == "runway_corridor":
+            geom = _corridor_geometry(cfg, z)
         else:
             coords = [to_metric.transform(lon, lat) for lon, lat in z.vertices]
             geom = Polygon(coords)
@@ -37,35 +57,48 @@ def zone_geometries(cfg: Config) -> list[tuple[str, BaseGeometry]]:
     return out
 
 
-def blocked_mask(cfg: Config, grid: Grid) -> np.ndarray:
-    """返回 (rows, cols) 布尔掩膜，True = 不可通行。
+def hard_zone_geometries(cfg: Config) -> list[tuple[str, BaseGeometry]]:
+    """只取 hard=True 的区，用于不可通行掩膜与路径验证。"""
+    names = {z.name for z in cfg.no_fly if z.hard}
+    return [(name, g) for name, g in zone_geometries(cfg) if name in names]
 
-    判定：格子正方形与任一禁飞区相交即不可通行（含只压到一角），偏保守。
-    """
-    zones = zone_geometries(cfg)
+
+def _mask_from_geometries(grid: Grid, geoms: list[BaseGeometry]) -> np.ndarray:
     blocked = np.zeros(grid.shape, dtype=bool)
-    if not zones:
+    if not geoms:
         return blocked
-
-    union = unary_union([g for _, g in zones])
+    union = unary_union([g for g in geoms if not g.is_empty])
     if union.is_empty:
         return blocked
     prepared = prep(union)
     minx, miny, maxx, maxy = union.bounds
-
     cell = grid.cell_m
     col_lo = max(int(np.floor((minx - grid.x0) / cell)), 0)
     col_hi = min(int(np.floor((maxx - grid.x0) / cell)) + 1, grid.cols)
     row_lo = max(int(np.floor((grid.y1 - maxy) / cell)), 0)
     row_hi = min(int(np.floor((grid.y1 - miny) / cell)) + 1, grid.rows)
-
     for r in range(row_lo, row_hi):
         y_bottom, y_top = grid.y_edges[r + 1], grid.y_edges[r]
         for c in range(col_lo, col_hi):
-            cell = box(grid.x_edges[c], y_bottom, grid.x_edges[c + 1], y_top)
-            if prepared.intersects(cell):
+            cell_box = box(grid.x_edges[c], y_bottom, grid.x_edges[c + 1], y_top)
+            if prepared.intersects(cell_box):
                 blocked[r, c] = True
     return blocked
+
+
+def blocked_mask(cfg: Config, grid: Grid) -> np.ndarray:
+    """返回 (rows, cols) 布尔掩膜，True = 不可通行（只算 hard=True 的区）。
+
+    判定：格子正方形与任一硬禁飞区相交即不可通行（含只压到一角），偏保守。
+    """
+    return _mask_from_geometries(grid, [g for _, g in hard_zone_geometries(cfg)])
+
+
+def restricted_mask(cfg: Config, grid: Grid) -> np.ndarray:
+    """受控/需审批区（hard=False，如机场净空保护区）覆盖的格子。"""
+    names = {z.name for z in cfg.no_fly if not z.hard}
+    geoms = [g for name, g in zone_geometries(cfg) if name in names]
+    return _mask_from_geometries(grid, geoms)
 
 
 def neighbors(
@@ -164,7 +197,7 @@ def validate_path(
     与掩膜实现解耦：这里直接用 shapely 判断折线是否穿过禁飞区。
     """
     issues: list[str] = []
-    zones = zone_geometries(cfg)
+    zones = hard_zone_geometries(cfg)
     union = unary_union([g for _, g in zones]) if zones else None
 
     # 1) 相邻步长合法（四邻或八邻）

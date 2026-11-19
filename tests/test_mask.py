@@ -48,9 +48,25 @@ def tiny_grid() -> Grid:
 def test_zone_geometries_are_metric(cfg):
     zones = zone_geometries(cfg)
     assert len(zones) == len(cfg.no_fly)
-    # 机场圆半径 5 km，米制坐标下面积应约 π·5000²
-    _, circle = zones[0]
-    assert circle.area == pytest.approx(np.pi * 5000**2, rel=0.01)
+    by_name = {name: g for name, g in zones}
+    # 机场净空走廊：长 (3800+2×20000) m × 宽 2×10000 m
+    corridor = by_name["szx_airport_protection_zone"]
+    assert corridor.area == pytest.approx(
+        (3800 + 2 * 20000) * 2 * 10000, rel=1e-3
+    )
+    # 两个示意多边形仍是 hard 区
+    assert by_name["wutongshan_area"].area > 0
+
+
+def test_corridor_is_restricted_not_hard(cfg, grid):
+    from src.mask import restricted_mask
+
+    blocked = blocked_mask(cfg, grid)
+    restricted = restricted_mask(cfg, grid)
+    # 该点位于 AOI 内、机场净空走廊内（深圳湾以西）
+    r, c = cell_of_point(cfg, grid, 113.88, 22.55)
+    assert restricted[r, c], "走廊内的格子应标记为受控区"
+    assert not blocked[r, c], "走廊不是硬禁飞，不应阻挡通行"
 
 
 def test_blocked_mask_shape_and_some_cells(cfg, grid):

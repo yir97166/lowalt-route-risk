@@ -22,6 +22,7 @@ from pyproj import Transformer
 
 from .config import Config
 from .grid import Grid, edges_to_lonlat
+from .mask import zone_geometries
 
 plt.rcParams["font.sans-serif"] = ["Microsoft YaHei", "SimHei", "DejaVu Sans"]
 plt.rcParams["axes.unicode_minus"] = False
@@ -68,18 +69,24 @@ def plot_population_map(
         closed=True, transform=ax.transData))
 
     zone_handles = []
-    for z in cfg.no_fly:
-        if z.kind == "circle":
-            pts = _circle_lonlat(cfg, z.center, z.radius_m)  # type: ignore[arg-type]
-            ax.plot(pts[:, 0], pts[:, 1], color="#ff4d4d", lw=1.8, ls="--")
-            zone_handles.append(Line2D([], [], color="#ff4d4d", lw=1.8, ls="--",
-                                       label="禁飞区（示意）：宝安机场 5 km 圆"))
-        else:
-            verts = np.asarray(z.vertices)  # 已是 WGS84 经纬度，无需投影
-            ax.add_patch(MplPolygon(verts, closed=True, facecolor="white", alpha=0.25,
+    to_geo = Transformer.from_crs(cfg.crs_metric, cfg.crs_input, always_xy=True)
+
+    def _ring(g) -> np.ndarray:
+        xs, ys = np.asarray(g.exterior.coords).T
+        lons, lats = to_geo.transform(xs, ys)
+        return np.column_stack([lons, lats])
+
+    for z, (_, geom) in zip(cfg.no_fly, zone_geometries(cfg)):
+        ring = _ring(geom)
+        if z.hard:
+            ax.add_patch(MplPolygon(ring, closed=True, facecolor="white", alpha=0.25,
                                     edgecolor="white", lw=1.6, ls="--"))
+        else:
+            ax.plot(ring[:, 0], ring[:, 1], color="#ff4d4d", lw=1.8, ls="--")
     zone_handles.append(Patch(facecolor="white", alpha=0.5, edgecolor="white", ls="--",
-                              label="禁飞区（示意）：敏感区多边形"))
+                              label="硬禁飞区（示意）：两个敏感多边形"))
+    zone_handles.append(Line2D([], [], color="#ff4d4d", lw=1.8, ls="--",
+                               label="机场净空保护区（官方尺寸，需审批）"))
 
     od = cfg.od_pairs[od_index]
     ax.scatter(*od.origin, marker="^", s=170, c="#20d020", edgecolor="black", zorder=6)

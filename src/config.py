@@ -38,20 +38,42 @@ class RiskConfig:
 
 @dataclass(frozen=True)
 class NoFlyZone:
-    """禁飞/敏感区。circle 用 center+radius_m，polygon 用 vertices。"""
+    """空域约束。circle / polygon / runway_corridor。
+
+    hard=True 表示几何上不可通行；hard=False 表示「受控/需审批」区，
+    只在报告与图中标注，不参与硬掩膜（例如机场净空保护区）。
+    runway_corridor 用 centerline 中心点 + 方位 + 半宽 + 端外延伸描述。
+    """
 
     name: str
-    kind: str  # "circle" | "polygon"
+    kind: str  # "circle" | "polygon" | "runway_corridor"
     note: str = ""
+    hard: bool = True
     center: tuple[float, float] | None = None
     radius_m: float | None = None
     vertices: tuple[tuple[float, float], ...] = ()
+    bearing_deg: float | None = None
+    runway_length_m: float | None = None
+    half_width_m: float | None = None
+    end_extension_m: float | None = None
 
     def __post_init__(self) -> None:
         if self.kind == "circle" and (self.center is None or self.radius_m is None):
             raise ValueError(f"圆形禁飞区 {self.name} 缺少 center/radius_m")
         if self.kind == "polygon" and len(self.vertices) < 3:
             raise ValueError(f"多边形禁飞区 {self.name} 至少需要 3 个顶点")
+        if self.kind == "runway_corridor":
+            missing = [
+                k for k, v in (
+                    ("center", self.center),
+                    ("bearing_deg", self.bearing_deg),
+                    ("runway_length_m", self.runway_length_m),
+                    ("half_width_m", self.half_width_m),
+                    ("end_extension_m", self.end_extension_m),
+                ) if v is None
+            ]
+            if missing:
+                raise ValueError(f"跑道净空走廊 {self.name} 缺少字段：{missing}")
 
 
 @dataclass(frozen=True)
@@ -92,24 +114,35 @@ def _as_bbox(value: Any) -> tuple[float, float, float, float]:
 
 def _as_no_fly(item: dict[str, Any]) -> NoFlyZone:
     kind = str(item.get("type", "")).lower()
+    common = {
+        "name": str(item["name"]),
+        "kind": kind,
+        "note": str(item.get("note", "")),
+        "hard": bool(item.get("hard", True)),
+    }
     if kind == "circle":
         center = tuple(float(v) for v in item["center"])  # type: ignore[arg-type]
         return NoFlyZone(
-            name=str(item["name"]),
-            kind="circle",
-            note=str(item.get("note", "")),
+            **common,
             center=(center[0], center[1]),
             radius_m=float(item["radius_m"]),
         )
     if kind == "polygon":
         verts = tuple((float(x), float(y)) for x, y in item["vertices"])
+        return NoFlyZone(**common, vertices=verts)
+    if kind == "runway_corridor":
+        center = tuple(float(v) for v in item["center"])  # type: ignore[arg-type]
         return NoFlyZone(
-            name=str(item["name"]),
-            kind="polygon",
-            note=str(item.get("note", "")),
-            vertices=verts,
+            **common,
+            center=(center[0], center[1]),
+            bearing_deg=float(item["bearing_deg"]),
+            runway_length_m=float(item["runway_length_m"]),
+            half_width_m=float(item["half_width_m"]),
+            end_extension_m=float(item["end_extension_m"]),
         )
-    raise ValueError(f"禁飞区类型 {kind!r} 不支持（只支持 circle / polygon）")
+    raise ValueError(
+        f"空域约束类型 {kind!r} 不支持（只支持 circle / polygon / runway_corridor）"
+    )
 
 
 def load_config(path: str | Path | None = None) -> Config:

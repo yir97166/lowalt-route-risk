@@ -34,17 +34,30 @@ data:
   synthetic_tif: data/processed/synthetic_population.tif
 
 no_fly:
-  - name: szx_airport_buffer_5km
-    type: circle
-    center: [113.8107, 22.6393]
-    radius_m: 5000
-    note: illustrative only, not official
+  # 官方机场净空保护区（深圳公安局 深公规〔2017〕3 号通告）：
+  # 距跑道中心线两侧各 10 km、跑道端外 20 km。几何按 AIP 2A-1：
+  # ARP N22°38.3′ E113°48.7′ = (113.8117, 22.6383)，跑道磁方位 156°/336°，
+  # 磁差 3°W → 真方位 159°；最长跑道 3800 m。
+  # 注意：该区是「受控/需审批」，不是几何禁飞；若当硬禁飞，深圳中西部
+  # 几乎全部不可通行，核心 OD 也无解。因此 hard: false，仅作覆盖率标注。
+  - name: szx_airport_protection_zone
+    type: runway_corridor
+    center: [113.8117, 22.6383]
+    bearing_deg: 159
+    runway_length_m: 3800
+    half_width_m: 10000
+    end_extension_m: 20000
+    hard: false
+    note: 官方净空保护区尺寸；无人机飞行需审批，模型按受控区处理
+  # 以下两个多边形仍是手工示意区，不代表官方禁飞区。
   - name: wutongshan_area
     type: polygon
+    hard: true
     vertices: [[113.98, 22.60], [114.00, 22.60], [114.00, 22.62], [113.98, 22.62]]
     note: illustrative only, not official
   - name: shenzhen_reservoir
     type: polygon
+    hard: true
     vertices: [[114.00, 22.57], [114.02, 22.57], [114.02, 22.59], [114.00, 22.59]]
     note: illustrative only, not official
 
