@@ -40,7 +40,7 @@ def plot_population_map(
     cfg: Config,
     grid: Grid,
     pop: np.ndarray,
-    risk: np.ndarray,
+    exposure: np.ndarray,
     out_path: str | Path,
     source_label: str,
     od_index: int = 0,
@@ -95,7 +95,7 @@ def plot_population_map(
 
     ax.set_title(
         f"深圳中西部人口热力图 · 200 m 网格（{source_label}）\n"
-        f"AOI {grid.cols}×{grid.rows} 格 · 高度 60 m 风险面 · 禁飞区 illustrative only",
+        f"AOI {grid.cols}×{grid.rows} 格 · 高度 60 m 人口暴露代理 · 禁飞区 illustrative only",
         fontsize=13,
     )
     ax.set_xlabel("经度 (°E)")
@@ -111,5 +111,5 @@ def plot_population_map(
     fig.savefig(out_path)
     plt.close(fig)
 
-    print(f"p95(非零人口)={p95:.2f} · 风险面 max={risk.max():.3f} · 非零格={int((pop > 0).sum())}")
+    print(f"p95(非零人口)={p95:.2f} · 暴露代理 max={exposure.max():.3f} · 非零格={int((pop > 0).sum())}")
     return out_path

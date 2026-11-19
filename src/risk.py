@@ -1,7 +1,10 @@
-"""地面风险面。
+"""人口暴露代理面（population exposure proxy）。
 
-risk_cell = pop_norm × severity × (1 − shelter) × alt_factor
+exposure_cell = pop_norm × severity × (1 − shelter) × alt_factor
 其中 pop_norm = min(pop / p95, 1)，p95 取 AOI 内非零格子的 95 分位。
+
+注意：这里的值不是风险、伤亡概率或 SORA 地面风险等级，只是同一次实验内
+用于比较不同路线的人口暴露相对强度。
 """
 from __future__ import annotations
 
@@ -20,12 +23,15 @@ def normalize_population(pop: np.ndarray, percentile: float = 95.0) -> tuple[np.
     return np.clip(values / p, 0.0, 1.0), p
 
 
-def risk_surface(
+def exposure_surface(
     pop_norm: np.ndarray,
     risk_cfg: RiskConfig,
     altitude_m: int | None = None,
 ) -> np.ndarray:
-    """给定归一化人口，返回风险面（0–1 量级）。altitude_m=None 表示 2D 默认最低层。"""
+    """给定归一化人口，返回暴露代理面（0–1 量级）。altitude_m=None 表示 2D 最低层。
+
+    altitude_factor 是无实证依据的情景参数，仅用于敏感性分析。
+    """
     if altitude_m is None:
         altitudes = sorted(risk_cfg.altitude_factor) or [60]
         altitude_m = altitudes[0]
@@ -36,3 +42,7 @@ def risk_surface(
         * (1.0 - risk_cfg.shelter)
         * alt_factor
     )
+
+
+# 兼容旧调用名；新代码请用 exposure_surface。
+risk_surface = exposure_surface

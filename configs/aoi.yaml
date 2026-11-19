@@ -8,8 +8,11 @@ aoi:
 
 grid:
   cell_size_m: 200
+  # 核心实验只用 60 m 单层；90/120 仅在 Day 11 做情景敏感性。
+  # 高度因子 0.85/0.70 是无依据的占位假设，不进入主结论。
   altitudes_m: [60, 90, 120]
   connectivity: 8
+  # 层间换层等效 50 m 水平距离，仅用于情景比较，不是爬升能耗模型。
   vertical_cost_m: 50
 
 risk:
@@ -23,6 +26,7 @@ risk:
     120: 0.70
   lambda_values: [0.0, 0.5, 1.0, 1.5, 2.0]
   lambda_default: 1.0
+  # 兼容旧配置保留；路由改为删除禁飞节点/相交边的硬约束，不要用大惩罚值替代。
   penalty: 1000000.0
 
 data:
@@ -45,9 +49,13 @@ no_fly:
     note: illustrative only, not official
 
 od_pairs:
+  # 坐标均为手工设定的近似 WGS84 值，仅用于方法演示；坐标来源与精度在
+  # docs/decisions.md 记录，Day 3 需用地图核对并记录 snap_offset_m。
+  # 核心 OD：深圳北站——深圳湾（高铁站到滨海商务区的中短途接驳情景）。
   - name: north_station_to_shenzhen_bay
     origin: [114.0295, 22.6103]
     destination: [113.9450, 22.5170]
+  # 以下 4 组为 Day 10 扩展批量实验，代表性说明见 PLAN.md 与报告。
   - name: futian_cbd_to_airport_east
     origin: [114.0579, 22.5431]
     destination: [113.8700, 22.6000]

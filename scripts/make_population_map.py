@@ -6,7 +6,7 @@
 
 输出：
     figures/00_population.png
-    data/processed/grid_population.csv  (row, col, lon, lat, population, pop_norm, risk_cell)
+    data/processed/grid_population.csv  (row, col, lon, lat, population, pop_norm, exposure_cell)
 """
 from __future__ import annotations
 
@@ -23,7 +23,7 @@ sys.path.insert(0, str(ROOT))
 from src.config import load_config  # noqa: E402
 from src.data import aggregate_population_to_grid, pick_population_path  # noqa: E402
 from src.grid import build_grid  # noqa: E402
-from src.risk import normalize_population, risk_surface  # noqa: E402
+from src.risk import exposure_surface, normalize_population  # noqa: E402
 from src.viz import plot_population_map  # noqa: E402
 
 
@@ -50,9 +50,9 @@ def main() -> int:
 
     pop = aggregate_population_to_grid(tif, grid, cfg)
     pop_norm, p95 = normalize_population(pop, cfg.risk.population_percentile)
-    risk = risk_surface(pop_norm, cfg.risk, altitude_m=cfg.grid.altitudes_m[0])
+    exposure = exposure_surface(pop_norm, cfg.risk, altitude_m=cfg.grid.altitudes_m[0])
 
-    fig_path = plot_population_map(cfg, grid, pop, risk, cfg.resolve(args.out), source_label)
+    fig_path = plot_population_map(cfg, grid, pop, exposure, cfg.resolve(args.out), source_label)
 
     from pyproj import Transformer
 
@@ -67,7 +67,7 @@ def main() -> int:
             "lat": np.asarray(lat).ravel(),
             "population": pop.ravel(),
             "pop_norm": pop_norm.ravel(),
-            "risk_cell": risk.ravel(),
+            "exposure_cell": exposure.ravel(),
         }
     )
     csv_path = cfg.resolve(args.csv)
