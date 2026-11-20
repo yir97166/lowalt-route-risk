@@ -190,6 +190,9 @@ python -m venv .venv
   这 4% 写成「牺牲距离换安全」。
 - **验证**：加权路线独立几何验证 0 次穿越硬禁飞；18 项测试通过
   （新增 `tests/test_router.py` 4 项：边暴露均值、λ 加价、绕行选低暴露、λ=0 退化）。
+- **局限（用户 2026-11-20 提醒）**：人口密集区基站/Wi-Fi 密集，通信干扰会威胁飞行安全；
+  本项目没有频谱与基站数据，**不建模**，只在报告局限中声明。暴露代理本身对应的后果链是
+  「失效坠落→地面人口受伤」，不含失效概率与撞击能量，见 `assumptions.md` §4。
 - **产出**：`scripts/make_weighted.py`、`results/compare.csv`、
   `results/weighted_path.csv`、`figures/03_route_compare.png`。
 
