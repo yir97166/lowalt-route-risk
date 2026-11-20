@@ -87,3 +87,24 @@ def aggregate_population_to_grid(tif_path: str | Path, grid: Grid, cfg: Config) 
     # average 得到的是「每个源像元」的平均值；乘面积比换成每格总人口。
     dst *= (grid.cell_m**2) / pix_area
     return np.clip(dst, 0.0, None)
+
+
+def load_grid_arrays(cfg, grid) -> tuple[np.ndarray, np.ndarray]:
+    """从 Day 1 的网格表恢复 (population, exposure) 两个数组。
+
+    列名兼容 ``exposure_cell``（v1.2 起）与旧列 ``risk_cell``。
+    """
+    import pandas as pd
+
+    csv_path = cfg.resolve("data/processed/grid_population.csv")
+    if not csv_path.exists():
+        raise FileNotFoundError(
+            f"缺少 {csv_path}；先跑 scripts/make_population_map.py"
+        )
+    df = pd.read_csv(csv_path)
+    col = "exposure_cell" if "exposure_cell" in df.columns else "risk_cell"
+    pop = np.zeros(grid.shape, dtype=float)
+    expo = np.zeros(grid.shape, dtype=float)
+    pop[df["row"].to_numpy(), df["col"].to_numpy()] = df["population"].to_numpy()
+    expo[df["row"].to_numpy(), df["col"].to_numpy()] = df[col].to_numpy()
+    return pop, expo

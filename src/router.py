@@ -58,3 +58,45 @@ def plan_route(
     (r0, c0), (r1, c1) = cells[0], cells[-1]
     straight = float(np.hypot(grid.xs[c1] - grid.xs[c0], grid.ys[r1] - grid.ys[r0]))
     return Route(cells=tuple(cells), length_m=length, straight_m=straight)
+
+
+def edge_exposure(a: tuple[int, int], b: tuple[int, int], exposure: np.ndarray) -> float:
+    """边的暴露代理值：两端格心暴露的均值（无量纲，0–1）。"""
+    return 0.5 * (float(exposure[a]) + float(exposure[b]))
+
+
+def exposure_weight(exposure: np.ndarray, lam: float):
+    """返回 networkx 可用的权重函数：length × (1 + λ × exposure)。"""
+    def _weight(a, b, data):
+        return float(data["length_m"]) * (1.0 + lam * edge_exposure(a, b, exposure))
+
+    return _weight
+
+
+def plan_route_weighted(
+    graph: nx.Graph,
+    grid: Grid,
+    start: tuple[int, int],
+    goal: tuple[int, int],
+    exposure: np.ndarray,
+    lam: float,
+) -> Route:
+    """暴露加权最短路；λ = 0 时与 ``plan_route`` 等价。"""
+    if start not in graph or goal not in graph:
+        raise nx.NodeNotFound(f"起点或终点不在图中：{start} / {goal}")
+    cells = list(nx.dijkstra_path(graph, start, goal, weight=exposure_weight(exposure, lam)))
+    length = path_length(graph, cells)
+    (r0, c0), (r1, c1) = cells[0], cells[-1]
+    straight = float(np.hypot(grid.xs[c1] - grid.xs[c0], grid.ys[r1] - grid.ys[r0]))
+    return Route(cells=tuple(cells), length_m=length, straight_m=straight)
+
+
+def route_exposure_m(
+    graph: nx.Graph, cells: tuple[tuple[int, int], ...] | list[tuple[int, int]],
+    exposure: np.ndarray,
+) -> float:
+    """累计暴露 = Σ(边长 × 边暴露)，单位 m（无量纲暴露 × 米）。"""
+    total = 0.0
+    for a, b in zip(cells, cells[1:]):
+        total += float(graph.edges[a, b]["length_m"]) * edge_exposure(a, b, exposure)
+    return total

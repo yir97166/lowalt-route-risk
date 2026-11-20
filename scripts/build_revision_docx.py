@@ -17,7 +17,7 @@ from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.shared import Cm, Pt, RGBColor
 
-OUT_DIR = Path(r"C:\Users\弋昊阳\OneDrive\桌面\低空航路项目-专家审核")
+OUT_DIR = Path(r"C:\Users\弋昊阳\OneDrive\桌面\low-attitude report\02_专家审核\20261119_审核包_v1.2")
 OUT = OUT_DIR / "专家意见修订说明-v1.2.docx"
 CN_FONT = "微软雅黑"
 MONO_FONT = "Consolas"

@@ -9,7 +9,7 @@ from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.shared import Cm, Pt, RGBColor
 
-OUT_DIR = Path(r"C:\Users\弋昊阳\OneDrive\桌面\低空航路项目-专家审核")
+OUT_DIR = Path(r"C:\Users\弋昊阳\OneDrive\桌面\low-attitude report\02_专家审核\20261119_审核包_v1.2")
 DOCX = OUT_DIR / "低空航路规划原型-计划与Day1产出-审核稿.docx"
 FIG = Path(
     r"C:\Users\弋昊阳\OneDrive\文档\deepseek-harness\default-workspace"
