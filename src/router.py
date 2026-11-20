@@ -100,3 +100,28 @@ def route_exposure_m(
     for a, b in zip(cells, cells[1:]):
         total += float(graph.edges[a, b]["length_m"]) * edge_exposure(a, b, exposure)
     return total
+
+
+def pareto_mask(lengths: np.ndarray, exposures: np.ndarray) -> np.ndarray:
+    """返回非支配点掩码：长度更短且暴露不更高，或暴露更低且长度不更长。
+
+    两个目标都是「越小越好」；完全相同的点只保留第一个。
+    """
+    n = len(lengths)
+    keep = np.ones(n, dtype=bool)
+    for i in range(n):
+        if not keep[i]:
+            continue
+        for j in range(n):
+            if i == j:
+                continue
+            no_worse = lengths[j] <= lengths[i] and exposures[j] <= exposures[i]
+            strictly_better = lengths[j] < lengths[i] or exposures[j] < exposures[i]
+            if no_worse and strictly_better:
+                keep[i] = False
+                break
+            if keep[j] and lengths[j] == lengths[i] and exposures[j] == exposures[i] and j < i:
+                keep[i] = False
+                break
+    return keep
+

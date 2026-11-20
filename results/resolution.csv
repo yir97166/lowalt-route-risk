@@ -1,0 +1,4 @@
+cell_m,rows,cols,n_cells,nodes,edges,blocked_cells,restricted_cells,p95_pop,snap_start_m,snap_goal_m,length_km_l0,length_km_l1,delta_pct,exposure_km_l0,exposure_km_l1,density_l0_km2,density_l1_km2,detour_l0,detour_l1,hard_crossings,valid,seconds
+100,194,255,49470,48464,192237,1006,18511,449.84,4.9,20.7,14.548,14.548,0.0,2.73,2.661,12490.5,12159.7,1.0769,1.0769,0,True,2.4
+200,98,128,12544,12268,48251,276,4706,1794.28,66.5,91.3,14.665,14.665,0.0,2.84,2.727,12838.3,12324.5,1.0867,1.0867,0,True,0.64
+400,50,64,3200,3109,12011,91,1215,7102.52,158.6,50.2,14.817,14.817,0.0,2.69,2.586,11855.4,11339.8,1.1083,1.1083,0,True,0.16

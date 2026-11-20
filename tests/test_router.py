@@ -9,6 +9,7 @@ from src.grid import Grid
 from src.router import (
     edge_exposure,
     exposure_weight,
+    pareto_mask,
     plan_route_weighted,
     route_exposure_m,
 )
@@ -78,3 +79,18 @@ def test_lambda_zero_matches_length() -> None:
     route = plan_route_weighted(graph, grid, (0, 0), (0, 3), exposure, lam=0.0)
     assert route.length_m == pytest.approx(600.0)
     assert route_exposure_m(graph, route.cells, exposure) == pytest.approx(180.0)
+
+
+def test_pareto_mask_removes_dominated_points() -> None:
+    lengths = np.array([10.0, 12.0, 12.0, 14.0, 11.0])
+    exposures = np.array([5.0, 4.0, 4.0, 3.0, 6.0])
+    mask = pareto_mask(lengths, exposures)
+    # (10,5) 与 (12,4)、(14,3) 是权衡关系，都保留；(11,6) 被 (10,5) 支配；
+    # 完全相同的 (12,4) 只保留第一个。
+    assert list(mask) == [True, True, False, True, False]
+
+
+def test_pareto_mask_keeps_all_when_tradeoff() -> None:
+    mask = pareto_mask(np.array([10.0, 11.0, 12.0]),
+                       np.array([5.0, 4.0, 3.0]))
+    assert mask.all()
