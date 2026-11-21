@@ -68,8 +68,8 @@ lowalt-route-risk/
 ├─ scripts/                # 数据生成、各实验结果、run_all.py 一键复现
 ├─ tests/                  # mask / graph / router，共 20 项
 ├─ docs/                   # 设计、假设、决策、数据来源、日志、周报说明
-├─ figures/                # 00–06 核心图
-├─ results/                # baseline / compare / pareto / resolution CSV
+├─ figures/                # 00–07 核心图与敏感性图
+├─ results/                # baseline / compare / pareto / resolution / 参数敏感性 CSV
 ├─ data/raw|processed/     # 原始数据（不入库）与处理结果
 └─ report/                 # 报告与视频（后续）
 ```
@@ -95,12 +95,25 @@ lowalt-route-risk/
 - λ=1 的「零距离代价」是等长 tie-break，不是优化效果好；真绕行在 λ≥1.3。
 - 400 m 网格起点吸附偏移 158.6 m（>100 m），报告中需标注。
 - 通信/电磁干扰、失效概率、坠落轨迹均未建模；只能做相对比较。
+- 遮蔽系数 0.30 是假设不是文献值；敏感性显示它只平移阈值（1.125/1.275/1.500），
+  不改变路线集合，但报告不能说「0.30 有依据」。
+
+## Day 8 记录（2026-11-21，提前）
+
+- 文献核对：docs/literature.md 收录 11 条可核验来源（SORA 2.5 草案、Primatesta 2019、
+  Washington 2017 综述、la Cour-Harbo 2018、Bertrand 2023、WorldPop 等），
+  逐条给 DOI；SORA 原文摘录表明「遮蔽」是缓解措施 M1(A)，不是固定系数。
+- 参数敏感性：scripts/make_param_sensitivity.py，s=0.2/0.3/0.4 下路线集合相同，
+  切换阈值 1.125 / 1.275 / 1.500，与 1/(1−s) 预测一致；
+  图 igures/07_param_sensitivity.png。
+- 文档：docs/assumptions.md §2/§3 补文献与敏感性；docs/decisions.md 第 16/17 条；
+  本 README 补 Day 8 记录与文献索引。
 
 ## 路线图
 
 - [x] Day 1–6：数据 → 网格/空域 → 最短路 → 加权 → λ 扫描/Pareto → 分辨率敏感性
-- [ ] Day 7：周复盘 + README v0.1 + tag（本版本）
-- [ ] Day 8：文献与暴露模型细化（SORA 地面风险、遮蔽/高度假设）
+- [x] Day 7：周复盘 + README v0.1 + tag（2026-11-21 完成）
+- [x] Day 8：文献与暴露模型细化（2026-11-21 提前完成）
 - [ ] Day 9：测试补全（风险/图/掩膜/路线 4 类）
 - [ ] Day 10：5 组 OD 批量实验
 - [ ] Day 11：高度层与缓冲情景敏感性
@@ -108,6 +121,12 @@ lowalt-route-risk/
 
 ## 引用
 
+- JARUS (2024). *SORA 2.5 main body draft*, for external consultation.
+- Primatesta, Rizzo & la Cour-Harbo (2019). Ground Risk Map for Unmanned Aircraft in Urban Environments. DOI: 10.1007/s10846-019-01015-z.
+- Washington, Clothier & Silva (2017). A review of UAS ground risk models. DOI: 10.1016/j.paerosci.2017.10.001.
+- la Cour-Harbo (2018). Quantifying Risk of Ground Impact Fatalities for Small Unmanned Aircraft. DOI: 10.1007/s10846-018-0853-1.
+- Tatem (2017). WorldPop, open data for spatial demography. DOI: 10.1038/sdata.2017.4.
+- 国务院、中央军委.《无人驾驶航空器飞行管理暂行条例》（第 761 号令，2024-01-01 施行）.
 - WorldPop (2020). *Global 2000–2020 Constrained Individual Countries, 100 m*.
 - 深圳市公安局. 深公规〔2017〕3 号《关于加强深圳机场净空区域安全保护的通告》.
 - 民航局 AIP：ZGSZ 2A-1 / 6A-1 / 6A-2 / 2P-1（工作副本，正式引用以原始页为准）.
