@@ -1,7 +1,7 @@
-"""生成《第一周复盘（Day 1–6）》Word 文档，供专业人士审阅。
+"""生成《第一周复盘（Day 1–8）》Word 文档，供专业人士审阅。
 
 输出：C:\\Users\\弋昊阳\\OneDrive\\桌面\\low-attitude report\\02_专家审核\\
-      20261120_第一周复盘_周报.docx
+      20261122_第一周复盘_周报.docx（覆盖 20261120 旧版）
 """
 from __future__ import annotations
 
@@ -16,7 +16,7 @@ from docx.oxml.ns import qn
 from docx.shared import Cm, Pt, RGBColor
 
 OUT_DIR = Path(r"C:\Users\弋昊阳\OneDrive\桌面\low-attitude report\02_专家审核")
-OUT = OUT_DIR / "20261120_第一周复盘_周报.docx"
+OUT = OUT_DIR / "20261122_第一周复盘_周报.docx"
 
 CN_FONT = "微软雅黑"
 DARK = RGBColor(0x1F, 0x38, 0x64)
@@ -44,7 +44,7 @@ def setup(doc: Document) -> None:
 
     normal = doc.styles["Normal"]
     set_style_font(normal, 10.5)
-    normal.paragraph_format.space_after = Pt(3)
+    normal.paragraph_format.space_after = Pt(2.5)
     normal.paragraph_format.line_spacing = 1.25
 
     for name, size in (("Heading 1", 14.5), ("Heading 2", 11.5), ("Title", 22)):
@@ -90,6 +90,13 @@ def table(doc: Document, header: list[str], rows: list[list[str]], widths=None) 
             run.font.size = Pt(9.5)
             run._element.rPr.rFonts.set(qn("w:eastAsia"), CN_FONT)
     if widths:
+        t.autofit = False
+        tblPr = t._tbl.tblPr
+        layout = OxmlElement("w:tblLayout")
+        layout.set(qn("w:type"), "fixed")
+        tblPr.append(layout)
+        for i, w in enumerate(widths):
+            t.columns[i].width = Cm(w)
         for row in t.rows:
             for i, w in enumerate(widths):
                 row.cells[i].width = Cm(w)
@@ -128,7 +135,7 @@ def footer_page_number(doc: Document) -> None:
     footer = doc.sections[0].footer
     para = footer.paragraphs[0]
     para.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    run = para.add_run("低空航路规划原型 · 第一周复盘（Day 1–6）· 第 ")
+    run = para.add_run("低空航路规划原型 · 第一周复盘（Day 1–8）· 第 ")
     run.font.size = Pt(8.5)
     run.font.color.rgb = RGBColor(0x80, 0x80, 0x80)
     run.font.name = CN_FONT
@@ -174,7 +181,7 @@ def build() -> Document:
 
     sub = doc.add_paragraph()
     sub.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    sr = sub.add_run("第一周复盘（Day 1–6）· 供专业人士审阅")
+    sr = sub.add_run("第一周复盘（Day 1–8）· 供专业人士审阅")
     sr.font.name = CN_FONT
     sr.font.size = Pt(13)
     sr.font.color.rgb = MID
@@ -183,29 +190,33 @@ def build() -> Document:
     meta = doc.add_paragraph()
     meta.alignment = WD_ALIGN_PARAGRAPH.CENTER
     mr = meta.add_run(
-        "弋昊阳 ｜ 2026-11-17 至 11-20 ｜ 深圳中西部 25×19 km ｜ "
-        "200 m 网格 ｜ 60 m 单层核心实验 ｜ 6 个工作日"
+        "弋昊阳 ｜ 2026-11-17 至 11-21 ｜ 深圳中西部 25×19 km ｜ "
+        "200 m 网格 ｜ 60 m 单层核心实验 ｜ 8 个工作日"
     )
     mr.font.name = CN_FONT
     mr.font.size = Pt(9.5)
     mr.font.color.rgb = RGBColor(0x59, 0x59, 0x59)
     mr._element.rPr.rFonts.set(qn("w:eastAsia"), CN_FONT)
 
-    p(doc, "")
-
     # 0 摘要
     h(doc, "0. 一页摘要")
-    p(doc, "本周把「数据 → 网格 → 空域约束 → 最短路 → 暴露加权 → λ 扫描与分辨率敏感性」"
-           "这条链路完整跑通，并全部留下可复现证据。核心实验按专家意见收窄为 1 组 OD"
-           "（深圳北—深圳湾）× 1 层（60 m），其余 4 组 OD 只作扩展参考。")
+    p(doc, "本周把「数据 → 网格 → 空域约束 → 最短路 → 暴露加权 → λ 扫描与分辨率敏感性"
+           " → 文献与参数敏感性 → 一键复现」这条链路完整跑通，并全部留下可复现证据。"
+           "核心实验按专家意见收窄为 1 组 OD（深圳北—深圳湾）× 1 层（60 m），"
+           "其余 4 组 OD 只作扩展参考。")
     bullet(doc, "核心 OD：14.665 km，绕行率 1.087，累计暴露 2.840（λ=0）→ 2.727（λ=1），"
                 "长度不变、暴露 −4.0%；5 组 OD 全部可达、0 次穿越硬禁飞区。")
     bullet(doc, "λ 扫描（0–2，105 条路线）：λ≈1.3 是分界。λ≥1.3 才出现真绕行——"
                 "多走 3.2% 距离，换 17.0% 暴露下降；λ 再大也不再变化（只有 3 个不同解）。")
     bullet(doc, "分辨率敏感性：100 / 200 / 400 m 下，沿路平均人口密度下降 2.6% / 4.0% / 4.3%，"
-                "结论方向一致；主实验保留 200 m（理由是公开人口数据 100 m 与计算量折中，"
+                "结论方向一致；主实验保留 200 m（公开人口数据 100 m 与计算量折中，"
                 "400 m 起点吸附偏移 158.6 m 需在报告标注）。")
-    bullet(doc, "工程质量：pytest 20 项通过；全新克隆安装 131.8 s、两个脚本 14.9 s，"
+    bullet(doc, "遮蔽系数敏感性：s=0.2/0.3/0.4 的路线切换阈值实测 1.125 / 1.275 / 1.500，"
+                "与 1/(1−s) 预测一致；三组路线集合相同，遮蔽只平移阈值、不改变结论。")
+    bullet(doc, "文献收口：11 条可核对文献（含 SORA 2.5 原文、地面风险与人口数据论文）；"
+                "SORA 把「遮蔽」列为缓解措施 M1，不是固定系数——我们的 0.30 只能算工程假设。")
+    bullet(doc, "工程质量：pytest 20 项通过；`scripts/run_all.py` 8 步 63.4 s 全过；"
+                "仓库已推到 GitHub（公开），全新克隆安装 131.8 s、两个脚本 14.9 s，"
                 "输出 CSV/PNG 与本地逐字节一致（SHA256）。")
 
     # 1 进度
@@ -220,10 +231,12 @@ def build() -> Document:
             ["Day 4", "11/20", "暴露加权 vs baseline", "λ=1 对比：5 组 OD 长度 0% 变化，暴露 −1.4%～−14.2%（等长 tie-break）", "figures/03_route_compare.png；results/compare.csv"],
             ["Day 5", "11/20", "λ 扫描 + Pareto", "105 条路线；核心 OD 只有 3 个不同解，阈值 λ≈1.3", "figures/05_pareto.png；results/pareto.csv"],
             ["Day 6", "11/20", "网格分辨率敏感性", "100/200/400 m 对比；密度下降 2.6%/4.0%/4.3%", "figures/06_resolution.png；results/resolution.csv"],
+            ["Day 7", "11/21", "周复盘 + README v0.1", "一键 8 步 63.4 s；README v0.1；仓库公开推送成功", "scripts/run_all.py；README.md；GitHub"],
+            ["Day 8", "11/21", "文献 + 遮蔽参数敏感性", "11 条文献（含 SORA 2.5）；阈值 1.125/1.275/1.500，路线集合不变", "docs/literature.md；figures/07_param_sensitivity.png"],
         ],
-        widths=[1.3, 1.3, 3.7, 6.5, 4.2],
+        widths=[1.6, 1.5, 3.2, 6.6, 4.1],
     )
-    p(doc, "说明：11/18 为专家意见评审日，不计入 21 个执行日；Day 5–6 因身体不适合并到 11/20 完成。",
+    p(doc, "说明：11/18 为专家意见评审日，不计入 21 个执行日；Day 5–8 合并/提前到 11/20–11/21 完成。",
       size=9)
 
     # 2 结果
@@ -289,14 +302,35 @@ def build() -> Document:
         doc,
         ["网格", "节点数", "长度 km", "绕行率", "沿路密度 λ=0→λ=1（人/km²）", "耗时"],
         [
-            ["100 m", "48,464", "14.548", "1.077", "12,491 → 12,160（−2.6%）", "2.4 s"],
-            ["200 m（主）", "12,268", "14.665", "1.087", "12,838 → 12,324（−4.0%）", "0.6 s"],
+            ["100 m", "48,464", "14.548", "1.077", "12,491 → 12,160（−2.6%）", "2.5 s"],
+            ["200 m（主）", "12,268", "14.665", "1.087", "12,838 → 12,324（−4.0%）", "0.7 s"],
             ["400 m", "3,109", "14.817", "1.108", "11,855 → 11,340（−4.3%）", "0.2 s"],
         ],
         widths=[3.0, 2.6, 2.6, 2.4, 6.6, 1.8],
     )
     p(doc, "跨分辨率不能直接比 Σ(暴露×长度)（随格面积放大），所以改用「沿路平均人口密度」。"
            "400 m 起点吸附偏移 158.6 m，超过 100 m 阈值，报告中需标注。", size=9)
+
+    h(doc, "2.6 遮蔽系数敏感性与 SORA 对照（核心 OD，60 m）", 2)
+    p(doc, "遮蔽系数 s 没有可引文献，因此不假设它是「真值」，而是看它把结论改变多少："
+           "固定 s，扫描 λ=0–2（步长 0.025），找路线第一次切换的阈值。")
+    table(
+        doc,
+        ["遮蔽系数 s", "实测切换阈值 λ", "1/(1−s) 预测", "不同路线数"],
+        [
+            ["0.2", "1.125", "1.116", "3"],
+            ["0.3（主）", "1.275", "1.275", "3"],
+            ["0.4", "1.500", "1.487", "3"],
+        ],
+        widths=[3.6, 4.4, 4.2, 3.0],
+    )
+    bullet(doc, "三组路线集合完全相同，只是阈值平移：遮蔽系数改变「何时开始绕」，"
+                "不改变「绕与不绕」两种解的存在性。")
+    bullet(doc, "SORA 2.5 原文核对：目标地面风险 1E-6 致死/小时；iGRC 由最大人口密度分档"
+                "（<25 到 >250000 人/km²）与无人机尺寸/速度决定；评估范围为运行体积 + 地面风险缓冲。"
+                "「遮蔽」在 SORA 中是缓解措施 M1(A)，不是固定乘数。")
+    bullet(doc, "因此本项目只把 0.30 当作工程假设，并在报告里写明：换成 0.2 或 0.4，"
+                "结论方向不变、阈值移动；不宣称 0.30 是标准值。")
 
     # 3 决策
     h(doc, "3. 本周关键决策与依据（摘要）")
@@ -314,10 +348,13 @@ def build() -> Document:
             ["8", "λ≈1.3 作为权衡阈值，但不宣称最优 λ", "105 条路线里只有 3 个不同解，阈值是观察结果"],
             ["9", "OD 坐标为手工近似，逐个报告吸附偏移", "无门牌级权威坐标；不编造精度"],
             ["10", "合成人口数据只验证流程，不写深圳结论", "WorldPop 625 MB 当日无法稳定下载"],
+            ["11", "文献引用必须可核对（DOI/文号/原文页），不引二手转述", "专家要求数据与依据可追溯；11 条全部核对过"],
+            ["12", "遮蔽系数 0.30 只作工程假设，另做 0.2/0.3/0.4 敏感性", "SORA 中遮蔽是缓解措施 M1，不是固定系数"],
+            ["13", "仓库公开、README v0.1、一键 8 步脚本", "新克隆 10 分钟内跑通是验收标准之一"],
         ],
         widths=[1.0, 7.6, 8.4],
     )
-    p(doc, "完整 15 条决策与日期见仓库 docs/decisions.md；假设与不适用范围见 docs/assumptions.md。", size=9)
+    p(doc, "完整 17 条决策与日期见仓库 docs/decisions.md；假设与不适用范围见 docs/assumptions.md。", size=9)
 
     # 4 证据
     h(doc, "4. 证据与可复现")
@@ -325,12 +362,14 @@ def build() -> Document:
         doc,
         ["项目", "结果"],
         [
-            ["提交记录", "21 个提交，从 2b266ed（Day 1）到 525601f（本周收尾）"],
+            ["提交记录", "28 个提交，从 2b266ed（Day 1）到 7de4105（Day 8）；main 与 origin/main 一致"],
             ["测试", "pytest 20 项通过：mask 9、graph 5、router 6"],
+            ["一键复现", "scripts/run_all.py 8 步全过，实测 63.4 s"],
+            ["公开仓库", "https://github.com/yir97166/lowalt-route-risk（Public，SSH over 443）"],
             ["全新克隆", "安装 131.8 s + 两个脚本 14.9 s，退出码 0，pip check 干净"],
             ["逐字节复现", "grid_population.csv 与 00_population.png 的 SHA256 与本地一致"],
             ["独立复核", "每条路线用 shapely 独立校验：相邻步长、硬禁飞格、逐段相交、最小间距"],
-            ["人工抽查", "用户 2026-11-20 在 Excel 核对 λ=1：14.665 km / 2.727，记入贡献台账"],
+            ["人工抽查", "用户 2026-11-20 在 Excel 核对 λ=1：14.665 km / 2.727；11-20 确认 Pareto 拐点在右侧 (3.2%, 17%)"],
         ],
         widths=[3.4, 13.4],
     )
@@ -348,45 +387,54 @@ def build() -> Document:
             ["400 m 起点偏移 158.6 m", "粗网格代表性下降", "报告标注，主实验用 200 m"],
             ["通信/电磁干扰未建模", "真实运行的重要风险缺失", "写入局限；有频谱数据可作第二层"],
             ["失效概率、坠落轨迹未知", "不能换算伤亡", "只做相对比较，不报绝对风险"],
+            ["未按 SORA 做定量评估", "不能声称符合 SORA；iGRC 分档与连续暴露未映射", "只把 SORA 当参照，报告写明「非审定/非合规」"],
+            ["遮蔽 0.30 无实测依据", "换系数会移动阈值", "已做 0.2/0.3/0.4 敏感性；结论方向不变"],
         ],
         widths=[4.4, 6.2, 6.2],
     )
 
     # 6 下周
-    h(doc, "6. 下周计划（Day 7–11，11/21–11/27）")
+    h(doc, "6. 下阶段计划（Day 9–13）")
     table(
         doc,
         ["天", "任务", "产出 / 验收"],
         [
-            ["Day 7", "周复盘 + README v0.1", "本周报；README 可给外部看"],
-            ["Day 8", "文献与暴露模型细化（SORA 地面风险、遮蔽/高度假设）", "docs/literature.md；参数有出处或明确标注假设"],
             ["Day 9", "单元测试补全（风险/图/掩膜/路线）", "pytest 覆盖 4 类核心逻辑"],
             ["Day 10", "5 组 OD 批量实验", "results/od_summary.csv；无缺失"],
             ["Day 11", "高度层与缓冲情景敏感性", "情景表 + 图；明确哪些是假设"],
+            ["Day 12", "CLI、配置与代码整理", "一条命令复现全部结果"],
+            ["Day 13", "随机种子、日志、异常处理", "同种子结果一致；错误可定位"],
         ],
         widths=[1.6, 9.0, 6.2],
     )
 
     # 7 问题
-    h(doc, "7. 请专业人士重点看的 5 个问题")
+    h(doc, "7. 请专业人士重点看的 6 个问题")
     for q in [
         "Q1 用「人口暴露代理 + 累计暴露」做路线比较，在学术上是否有更标准的指标或必须补的项？",
         "Q2 λ=1 只产生等长 tie-break、λ≥1.3 才真绕行——这个「阈值」结论在方法上站得住吗？还是网格对称性造成的假象？",
         "Q3 机场净空保护区按「受控/需审批」处理、不做硬禁飞，这个边界是否可接受？",
-        "Q4 地面遮蔽 0.30、高度因子 0.85/0.70 目前无可引文献，是否应直接删掉高度维度？",
-        "Q5 通信/电磁干扰没有数据就不建模、只写局限，这样的处理在审稿/答辩中是否足够？",
+        "Q4 遮蔽 0.30 只是工程假设（SORA 里遮蔽属于缓解措施 M1，不是固定乘数）。"
+        "在不能拿到实测数据时，是把 0.30 写死并做敏感性，还是干脆去掉遮蔽？",
+        "Q5 我们不按 SORA 做定量评估（iGRC 分档 vs 连续暴露未映射），只当参照。"
+        "这个边界在硕士申请作品里是否够诚实、够用？",
+        "Q6 通信/电磁干扰没有数据就不建模、只写局限，这样的处理在审稿/答辩中是否足够？",
     ]:
-        p(doc, q)
-        p(doc, "专家意见：", size=9.5)
-        p(doc, "")
+        para = p(doc, q)
+        para.paragraph_format.space_before = Pt(6)
+        ans = p(doc, "专家意见：", size=9.5)
+        ans.paragraph_format.space_after = Pt(10)
 
     # 8 附件
     h(doc, "8. 附件与路径")
+    p(doc, "公开仓库：https://github.com/yir97166/lowalt-route-risk")
     p(doc, "项目根目录：C:\\Users\\弋昊阳\\OneDrive\\文档\\deepseek-harness\\default-workspace\\lowalt-route-risk")
     p(doc, "本周资料夹：C:\\Users\\弋昊阳\\OneDrive\\桌面\\low-attitude report\\")
-    bullet(doc, "01_原始资料\\：机场通告与 4 张航图（含 6A-1、6A-2、2A-1、2P-1）")
-    bullet(doc, "02_专家审核\\：20261119_专家审核意见.docx、审核包 v1.2、本周报")
-    bullet(doc, "03_图与结果_20261120\\：05_pareto.png、06_resolution.png、核心 OD λ 扫描表")
+    p(doc, "包内材料：01_原始资料\\（机场通告与 4 张航图 6A-1、6A-2、2A-1、2P-1）；"
+           "02_专家审核\\（专家意见、审核包 v1.2、本周报）；03_图与结果_20261120\\"
+           "（05_pareto.png、06_resolution.png、核心 OD λ 扫描表）；仓库 docs\\literature.md"
+           "（11 条文献）、docs\\decisions.md（17 条决策）、figures\\07_param_sensitivity.png、"
+           "results\\param_sensitivity*.csv。", size=9.5)
     p(doc, "免责声明：本项目为方法演示与能力证明，人口数据为合成、禁飞区为示意或公开资料近似，"
            "不构成适航审定、运行许可、合规判断或任何实际飞行依据。", size=9)
 

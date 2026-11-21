@@ -10,3 +10,6 @@ data/processed/*
 .cache/
 pip-unpack-*/
 matplotlib-*/
+
+# 临时审阅目录（不进仓库）
+今天要看/
