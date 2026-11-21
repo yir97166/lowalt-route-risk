@@ -4,7 +4,7 @@ r"""一键跑完 Week 1 全部可复现流程（合成数据，不联网）。
     .\.venv\Scripts\python.exe scripts\run_all.py
 
 顺序：合成人口 → 人口热力图 → 网格/空域掩膜 → 最短路 baseline
-      → λ=1 加权对比 → λ 扫描/Pareto → 网格分辨率敏感性。
+      → λ=1 加权对比 → λ 扫描/Pareto → 网格分辨率敏感性 → 遮蔽参数敏感性。
 每步打印用时；任一步非零退出即停止。
 """
 from __future__ import annotations
@@ -24,6 +24,7 @@ STEPS: list[tuple[str, list[str]]] = [
     ("λ=1 暴露加权 vs baseline", ["scripts/make_weighted.py"]),
     ("λ 扫描 + Pareto", ["scripts/make_pareto.py"]),
     ("网格分辨率敏感性", ["scripts/make_resolution.py"]),
+    ("遮蔽参数敏感性（s=0.2/0.3/0.4）", ["scripts/make_param_sensitivity.py"]),
 ]
 
 

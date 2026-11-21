@@ -36,7 +36,7 @@ python -m venv .venv
 .\.venv\Scripts\python.exe scripts\run_all.py
 ```
 
-实测：安装约 2 分钟，全流程 **51.0 s**，产出 `figures/00–06`、`results/*.csv`、`data/processed/*`。
+实测：安装约 2 分钟，全流程 8 步 **63.4 s**，产出 `figures/00–07`、`results/*.csv`、`data/processed/*`。
 单独重跑某一步时，脚本彼此独立，见 `scripts/`。
 
 接入真实数据：把 WorldPop 100 m GeoTIFF 放到 `data/raw/worldpop/chn_ppp_2020_100m.tif` 并重跑，
