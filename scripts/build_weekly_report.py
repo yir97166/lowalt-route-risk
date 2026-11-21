@@ -431,7 +431,7 @@ def build() -> Document:
     p(doc, "项目根目录：C:\\Users\\弋昊阳\\OneDrive\\文档\\deepseek-harness\\default-workspace\\lowalt-route-risk")
     p(doc, "本周资料夹：C:\\Users\\弋昊阳\\OneDrive\\桌面\\low-attitude report\\")
     p(doc, "包内材料：01_原始资料\\（机场通告与 4 张航图 6A-1、6A-2、2A-1、2P-1）；"
-           "02_专家审核\\（专家意见、审核包 v1.2、本周报）；03_图与结果_20261120\\"
+           "02_专家审核\\（专家意见、审核包 v1.2、本周报）；03_图与结果_20261122\\"
            "（05_pareto.png、06_resolution.png、核心 OD λ 扫描表）；仓库 docs\\literature.md"
            "（11 条文献）、docs\\decisions.md（17 条决策）、figures\\07_param_sensitivity.png、"
            "results\\param_sensitivity*.csv。", size=9.5)
