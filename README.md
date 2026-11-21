@@ -1,6 +1,7 @@
 # 低空航路规划与人口暴露权衡分析原型
 **Low-Altitude Route Planning with a Population-Exposure Proxy**
 
+> 仓库：<https://github.com/yir97166/lowalt-route-risk>
 > 状态：**v0.1（第一周 Day 1–6 完成，2026-11-17 至 11-20）**
 > 用途：港澳硕士申请作品集（低空经济 / UTM 方向），证明「方法—数据—验证」能跑通、能复现。
 >

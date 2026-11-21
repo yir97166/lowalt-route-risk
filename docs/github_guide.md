@@ -108,6 +108,37 @@ git push
 - [ ] 航图 PDF 没有直接放进仓库（版权）；仓库只放引用信息，见 `docs/data_sources.md`。
 - [ ] 合成数据说明清楚，不写「深圳真实人口」。
 
+## 9. 本机已配置记录（2026-11-21，可跳过）
+
+这台电脑当时 HTTPS 到 GitHub 被重置（`Recv failure: Connection was reset`），
+但 `ssh.github.com:443` 能握手，所以最终走 **SSH over 443**。已做的配置：
+
+1. 生成 Ed25519 密钥（**空口令**）：`~/.ssh/id_ed25519_github`
+   （公钥已加到 GitHub → Settings → SSH and GPG keys）。
+2. `~/.ssh/config`：
+   ```
+   Host github.com
+       HostName ssh.github.com
+       Port 443
+       User git
+       IdentityFile ~/.ssh/id_ed25519_github
+       IdentitiesOnly yes
+       StrictHostKeyChecking accept-new
+   ```
+3. `origin` = `git@github.com:yir97166/lowalt-route-risk.git`。
+4. **关键坑**：git 自带的 MSYS ssh 处理不了中文用户名路径
+   （报 `Could not create directory '/c/Users/337 256 352/...'`），
+   所以让 git 改用 Windows 自带 OpenSSH：
+   ```powershell
+   git config --global core.sshCommand '"C:/Windows/System32/OpenSSH/ssh.exe" -F "C:/Users/弋昊阳/.ssh/config"'
+   ```
+5. 验证：`ssh -T git@github.com` → `Hi yir97166! ...`；
+   `git push -u origin main`、`git push origin v0.1` 均成功；
+   `git ls-remote origin` 能看到 `refs/heads/main` 和 `refs/tags/v0.1`。
+
+以后每天只需要 `git add -A` → `git commit -m "..."` → `git push`，不再需要 token 或代理。
+
 ---
 
 做完把仓库链接发我，我可以在 README 顶部补一行 GitHub 徽章和链接。
+
