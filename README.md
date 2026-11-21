@@ -21,8 +21,9 @@
 | 空域约束 | 硬禁飞 276 格（2.20%）；机场净空区 4,706 格（37.52%，受控/需审批） | `figures/01_grid_nofly.png` |
 | 核心 OD 最短路 | 深圳北—深圳湾 14.665 km，绕行率 1.087，0 次穿越 | `results/baseline.csv` |
 | λ=1 加权 | 5 组 OD 长度 0.00% 变化，累计暴露 −1.4%～−14.2%（等长 tie-break） | `results/compare.csv` |
-| λ 扫描 | 105 条路线；核心 OD 只有 3 个不同解，**权衡阈值 λ≈1.3**（+3.2% 距离 / −17.0% 暴露） | `results/pareto.csv` |
+| λ 扫描 | 105 条路线；核心 OD 只有 3 个不同解，切换点 λ≈0.025（等长 tie-break）与 **λ≈1.275**（+3.2% 距离 / −17.0% C） | `results/pareto.csv`、`results/pareto_routes.csv` |
 | 分辨率敏感性 | 100 / 200 / 400 m：沿路人口密度下降 2.6% / 4.0% / 4.3%，方向一致 | `results/resolution.csv` |
+| 吸附偏移敏感性 | 起终点整体平移 ±0.5 格：λ=0 时 100/200/400 m 的 C 分别变动 ±3.3% / ±6.6% / **+20.4%** | `results/origin_shift_summary.csv` |
 | 工程验证 | pytest 20 项；全新克隆 131.8 s 安装 + 14.9 s 跑脚本；CSV/PNG SHA256 逐字节一致 | 见下 |
 
 > 人口为合成数据（WorldPop 625 MB 当日无法稳定下载，按计划降级）。上表只证明方法链路与可复现性，
@@ -79,6 +80,8 @@ lowalt-route-risk/
 | 文件 | 内容 |
 |---|---|
 | `docs/spec.md` | 设计说明与模块职责 |
+| `docs/indicator_definition.md` | **指标定义与单位**：C（代理·米）、E、ρ̄、λ 量纲、可说/不可说口径 |
+| `docs/pareto_reading.md` | **Pareto 明细与去重规则**：3 个解的表、切换点、读法陷阱 |
 | `docs/assumptions.md` | 建模假设、不适用范围（v0.2） |
 | `docs/decisions.md` | 15 条关键决策：决定/理由/来源/日期 |
 | `docs/review_response.md` | 专家意见 18 条逐条响应与保留差异 |
@@ -92,8 +95,11 @@ lowalt-route-risk/
 - 人口为**合成数据**，绝对数字不代表深圳；所有结论只在这套数据内成立。
 - 净空保护区 ≠ 无人机禁飞区，本项目不下合规结论。
 - 核心实验仅 60 m 单层；90/120 m 仅作 Day 11 情景，标注为假设。
-- λ=1 的「零距离代价」是等长 tie-break，不是优化效果好；真绕行在 λ≥1.3。
-- 400 m 网格起点吸附偏移 158.6 m（>100 m），报告中需标注。
+- λ 的「零距离代价」（λ=1）是等长 tie-break，不是优化效果好；真绕行从 λ≈1.275（s=0.30）开始。
+- 400 m 网格起点吸附偏移 158.6 m（>100 m）；**吸附位置本身就能让 C 变动约 20%**，
+  与 λ 带来的 17% 差异同量级，故 400 m 只作稳健性对照，主结论用 200 m 并给区间。
+- C 是等效暴露长度（代理·米），等于 Σ(边长 × 边暴露强度)，恒有 C ≤ L；
+  不可与路线长度互换，不能写成「暴露 2,840 米」。定义见 `docs/indicator_definition.md`。
 - 通信/电磁干扰、失效概率、坠落轨迹均未建模；只能做相对比较。
 - 遮蔽系数 0.30 是假设不是文献值；敏感性显示它只平移阈值（1.125/1.275/1.500），
   不改变路线集合，但报告不能说「0.30 有依据」。
@@ -108,6 +114,19 @@ lowalt-route-risk/
   图 igures/07_param_sensitivity.png。
 - 文档：docs/assumptions.md §2/§3 补文献与敏感性；docs/decisions.md 第 16/17 条；
   本 README 补 Day 8 记录与文献索引。
+
+## Day 9 记录（2026-11-22，审核后修订 ①②③④）
+
+外部审核（70/100，「有条件通过」）后优先处理四件可当天落地的：
+
+- ④ 指标定死：新增 `src/metrics.py`（C / E / ρ̄）+ `docs/indicator_definition.md`；
+  修掉「累计暴露 2,840.3 m」的单位错误，新增 `tests/test_metrics.py`（6 项）。
+- ③ 吸附偏移：新增 `scripts/make_origin_shift.py`，±0.5 格 × 9 位置 × 3 分辨率 × 2 个 λ，
+  产出 `results/origin_shift*.csv`、`figures/08_origin_shift.png`。
+- ② Pareto 明细：新增 `scripts/make_pareto_detail.py`（λ 步长 0.025，按格心序列哈希去重），
+  产出 `results/pareto_routes.csv`（21 个解）、`results/pareto_transitions.csv`（16 个切换点）、
+  `figures/09_pareto_routes.png`、`docs/pareto_reading.md`。
+- 测试从 20 项增至 26 项，全部通过。
 
 ## 路线图
 
