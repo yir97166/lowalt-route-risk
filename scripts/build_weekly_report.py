@@ -122,6 +122,16 @@ def p(doc: Document, text: str, bold: bool = False, size: float = 10.5):
     return para
 
 
+def mono(doc: Document, text: str):
+    para = doc.add_paragraph()
+    para.paragraph_format.space_after = Pt(2)
+    run = para.add_run(text)
+    run.font.name = "Consolas"
+    run.font.size = Pt(9)
+    run._element.rPr.rFonts.set(qn("w:eastAsia"), "Consolas")
+    return para
+
+
 def bullet(doc: Document, text: str):
     para = doc.add_paragraph(style="List Bullet")
     run = para.add_run(text)
@@ -450,6 +460,11 @@ def build() -> Document:
            "（05_pareto.png、06_resolution.png、核心 OD λ 扫描表）；仓库 docs\\literature.md"
            "（11 条文献）、docs\\decisions.md（17 条决策）、figures\\07_param_sensitivity.png、"
            "results\\param_sensitivity*.csv。", size=9.5)
+    p(doc, "复现（PowerShell，仓库根目录）：", size=9.5)
+    mono(doc, ".\\venv\\Scripts\\python.exe scripts\\run_all.py   # 8 步，约 63 s")
+    mono(doc, ".\\venv\\Scripts\\python.exe -m pytest -q      # 26 passed")
+    p(doc, "验收口径：一键脚本从零全过、测试全绿、CSV/PNG 由脚本重新生成；"
+           "所有数字以仓库 results/ 与 figures/ 为准，本报告不手改数字。", size=9)
     p(doc, "免责声明：本项目为方法演示与能力证明，人口数据为合成、禁飞区为示意或公开资料近似，"
            "不构成适航审定、运行许可、合规判断或任何实际飞行依据。", size=9)
 
