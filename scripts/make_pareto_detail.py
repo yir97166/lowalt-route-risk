@@ -47,19 +47,22 @@ from src.graph import build_graph  # noqa: E402
 from src.grid import build_grid, edges_to_lonlat  # noqa: E402
 from src.mask import (  # noqa: E402
     blocked_mask,
+    feasible_od,
     nearest_free_cell,
     restricted_mask,
     validate_path,
     zone_geometries,
 )
+
+MAX_SNAP_M = 300.0
 from src.metrics import route_metrics  # noqa: E402
 from src.router import plan_route_weighted  # noqa: E402
 
 SHORT = {
-    "north_station_to_shenzhen_bay": "北站—深圳湾（核心）",
+    "north_station_to_shenzhen_bay": "北站—深圳湾（不可达）",
     "futian_cbd_to_airport_east": "福田—机场东",
     "nanshan_to_baoan": "南山—宝安",
-    "luohu_to_futian": "罗湖—福田",
+    "luohu_to_futian": "罗湖—福田（核心）",
     "baoan_center_to_nanshan": "宝安—南山",
 }
 DEDUP_RULE = ("同一 OD 下，两条路线若格心序列完全相同（逐格相同，含起终点格），"
@@ -99,8 +102,10 @@ def main() -> int:
     for idx, od in enumerate(cfg.od_pairs):
         step = args.core_step if idx == 0 else args.other_step
         lambdas = np.round(np.arange(0.0, 2.0 + 1e-9, step), 3)
-        s = nearest_free_cell(cfg, grid, blocked, *od.origin)
-        d = nearest_free_cell(cfg, grid, blocked, *od.destination)
+        s, d, feasible = feasible_od(cfg, grid, blocked, od, MAX_SNAP_M)
+        if not feasible:
+            print(f"{od.name}: 端点落在硬禁飞区内，跳过")
+            continue
         start, goal = (s.row, s.col), (d.row, d.col)
 
         seq: list[dict] = []
@@ -225,7 +230,7 @@ def main() -> int:
     ax2.legend(fontsize=7.4, loc="upper left")
     handles = [
         Patch(facecolor="white", alpha=0.5, edgecolor="white", ls="--", label="硬禁飞（示意）"),
-        Line2D([], [], color="#ff4d4d", lw=1.2, ls="--", label="机场净空区（需审批）"),
+        Line2D([], [], color="#ff4d4d", lw=1.2, ls="--", label="机场净空区（硬禁飞）"),
     ]
     ax1.legend(handles=handles + ax1.get_legend_handles_labels()[0],
                fontsize=7.2, loc="lower left", framealpha=0.92)

@@ -95,7 +95,7 @@ def blocked_mask(cfg: Config, grid: Grid) -> np.ndarray:
 
 
 def restricted_mask(cfg: Config, grid: Grid) -> np.ndarray:
-    """受控/需审批区（hard=False，如机场净空保护区）覆盖的格子。"""
+    """hard=False 区（当前没有；保留接口）覆盖的格子。"""
     names = {z.name for z in cfg.no_fly if not z.hard}
     geoms = [g for name, g in zone_geometries(cfg) if name in names]
     return _mask_from_geometries(grid, geoms)
@@ -168,6 +168,23 @@ def nearest_free_cell(
         lon=float(glon),
         lat=float(glat),
     )
+
+
+def feasible_od(
+    cfg: Config,
+    grid: Grid,
+    blocked: np.ndarray,
+    od,
+    max_snap_m: float = 300.0,
+) -> tuple[SnapResult, SnapResult, bool]:
+    """吸附 OD 两端；偏移超过 max_snap_m 视为端点落在硬禁飞区内、判不可达。
+
+    300 m 是一次工程判断：100 m 用来提醒坐标精度不足，300 m 之外已不是
+    「同一点位附近」，继续吸附会把端点悄悄搬到几公里外，等于改题。
+    """
+    s = nearest_free_cell(cfg, grid, blocked, *od.origin)
+    d = nearest_free_cell(cfg, grid, blocked, *od.destination)
+    return s, d, max(s.offset_m, d.offset_m) <= max_snap_m
 
 
 def path_line(cells: list[tuple[int, int]], grid: Grid) -> LineString:

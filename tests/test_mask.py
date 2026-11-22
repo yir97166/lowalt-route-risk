@@ -58,32 +58,34 @@ def test_zone_geometries_are_metric(cfg):
     assert by_name["wutongshan_area"].area > 0
 
 
-def test_corridor_is_restricted_not_hard(cfg, grid):
+def test_corridor_is_hard(cfg, grid):
     from src.mask import restricted_mask
 
     blocked = blocked_mask(cfg, grid)
     restricted = restricted_mask(cfg, grid)
     # 该点位于 AOI 内、机场净空走廊内（深圳湾以西）
     r, c = cell_of_point(cfg, grid, 113.88, 22.55)
-    assert restricted[r, c], "走廊内的格子应标记为受控区"
-    assert not blocked[r, c], "走廊不是硬禁飞，不应阻挡通行"
+    assert blocked[r, c], "深公规〔2017〕3 号「严禁」→ 走廊按硬禁飞处理"
+    # 现在所有区都是 hard=True，不存在「受控但可通行」的格子
+    assert not restricted.any()
 
 
 def test_blocked_mask_shape_and_some_cells(cfg, grid):
     blocked = blocked_mask(cfg, grid)
     assert blocked.shape == grid.shape
     assert blocked.dtype == bool
-    # 两个多边形禁飞区都在 AOI 内，必然有不可通行格
-    assert blocked.sum() > 0
-    # 西南角远离所有禁飞区，应可通行
-    assert not blocked[-1, 0]
+    # 机场净空走廊 + 两个多边形都在 AOI 内，必然有大量不可通行格
+    assert blocked.sum() > 4000
+    # 东南角在走廊外，应可通行
+    r, c = cell_of_point(cfg, grid, 114.08, 22.49)
+    assert not blocked[r, c]
 
 
 def test_polygon_zone_center_is_blocked(cfg, grid):
     blocked = blocked_mask(cfg, grid)
     r, c = cell_of_point(cfg, grid, 113.99, 22.61)  # 梧桐山示意多边形中心
     assert blocked[r, c]
-    r2, c2 = cell_of_point(cfg, grid, 113.90, 22.52)
+    r2, c2 = cell_of_point(cfg, grid, 114.08, 22.49)
     assert not blocked[r2, c2]
 
 
@@ -130,9 +132,30 @@ def test_validate_path_flags_blocked_cell(cfg, grid):
 
 def test_validate_path_ok_for_short_free_segment(cfg, grid):
     blocked = blocked_mask(cfg, grid)
-    r, c = cell_of_point(cfg, grid, 113.90, 22.52)
+    r, c = cell_of_point(cfg, grid, 114.08, 22.49)  # 走廊外东南角
     assert not blocked[r, c] and not blocked[r, c + 1]
     result = validate_path([(r, c), (r, c + 1)], grid, cfg, blocked=blocked)
     assert result.ok
     assert result.crossings == 0
     assert result.length_m == pytest.approx(grid.cell_m)
+
+
+def test_feasible_od_rejects_endpoint_in_hard_zone(cfg, grid):
+    from src.mask import feasible_od
+
+    blocked = blocked_mask(cfg, grid)
+    by_name = {od.name: od for od in cfg.od_pairs}
+    s, d, ok = feasible_od(cfg, grid, blocked, by_name["north_station_to_shenzhen_bay"])
+    assert not ok, "终点落在净空走廊内，应判不可达而不是把终点挪走"
+    assert d.offset_m > 300.0
+    assert s.offset_m <= 300.0
+
+
+def test_feasible_od_accepts_core(cfg, grid):
+    from src.mask import feasible_od
+
+    blocked = blocked_mask(cfg, grid)
+    od = next(o for o in cfg.od_pairs if o.name == "luohu_to_futian")
+    s, d, ok = feasible_od(cfg, grid, blocked, od)
+    assert ok
+    assert max(s.offset_m, d.offset_m) <= 300.0

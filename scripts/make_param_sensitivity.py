@@ -49,7 +49,7 @@ from src.router import plan_route_weighted, route_exposure_m
 
 SHELTERS = (0.2, 0.3, 0.4)
 LAMBDAS = np.round(np.arange(0.0, 2.0001, 0.025), 4)
-CORE_OD = "north_station_to_shenzhen_bay"
+CORE_OD = "luohu_to_futian"
 
 
 def main() -> int:

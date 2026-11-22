@@ -1,6 +1,6 @@
-od,lambda,reachable,base_length_m,weighted_length_m,delta_m,delta_pct,base_detour_ratio,weighted_detour_ratio,base_exposure_m,weighted_exposure_m,exposure_drop_pct,base_mean_exposure,weighted_mean_exposure,hard_crossings,restricted_cells,restricted_share,valid,same_as_baseline
-north_station_to_shenzhen_bay,1.0,True,14665.2,14665.2,0.0,0.0,1.0867,1.0867,2840.3,2727.0,3.99,0.193674,0.185952,0,8,0.1356,True,False
-futian_cbd_to_airport_east,1.0,True,21885.3,21885.3,0.0,0.0,1.0777,1.0777,3376.5,2898.5,14.16,0.15428,0.132439,0,34,0.3469,True,False
-nanshan_to_baoan,1.0,True,8553.9,8553.9,0.0,0.0,1.0373,1.0373,2645.7,2471.9,6.57,0.309294,0.288974,0,33,1.0,True,False
-luohu_to_futian,1.0,True,7014.2,7014.2,0.0,0.0,1.0508,1.0508,4387.8,4326.0,1.41,0.625555,0.616745,0,0,0.0,True,False
-baoan_center_to_nanshan,1.0,True,8574.0,8574.0,0.0,0.0,1.0765,1.0765,4993.6,4594.0,8.0,0.582413,0.5358,0,36,1.0,True,False
+od,lambda,reachable,base_length_m,weighted_length_m,delta_m,delta_pct,base_detour_ratio,weighted_detour_ratio,base_exposure_m,weighted_exposure_m,exposure_drop_pct,base_mean_exposure,weighted_mean_exposure,hard_crossings,restricted_cells,restricted_share,valid,same_as_baseline,start_offset_m,dest_offset_m,note
+luohu_to_futian,1.0,True,7014.2,7014.2,0.0,0.0,1.0508,1.0508,4387.8,4326.0,1.41,0.625555,0.616745,0.0,0.0,0.0,True,False,,,
+north_station_to_shenzhen_bay,1.0,False,,,,,,,,,,,,,,,,,66.5,1856.3,endpoint_in_hard_zone
+futian_cbd_to_airport_east,1.0,False,,,,,,,,,,,,,,,,,68.9,5944.7,endpoint_in_hard_zone
+nanshan_to_baoan,1.0,False,,,,,,,,,,,,,,,,,2801.9,5395.1,endpoint_in_hard_zone
+baoan_center_to_nanshan,1.0,False,,,,,,,,,,,,,,,,,6380.2,1253.5,endpoint_in_hard_zone

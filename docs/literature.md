@@ -21,7 +21,7 @@
 | R7 | Feng, Y., Zhang, Y., Tang, Y., Wang, Y., Feng, Y., Zhong, Y. (2025). *Digital Low-Altitude Airspace UAV Path Planning and Operational Capacity Assessment in Urban Risk Environments*. Drones, 9(5), 320. DOI: 10.3390/drones9050320 | 期刊论文 | 近期「风险环境下的低空路径 + 容量」工作，用于报告相关工作一节 | 不做容量评估、不做数字空域 |
 | R8 | Ford, A. T., McEntee, R. J. (2010). *Assessment of the Risk to Ground Population Due to an Unmanned Aircraft In-Flight Failure*. AIAA ATIO 2010. DOI: 10.2514/6.2010-9056 | 会议论文 | 早期「在飞失效—地面人口」风险评估的代表 | 不做失效树/可靠性分析 |
 | R9 | Tatem, A. J. (2017). *WorldPop, open data for spatial demography*. Scientific Data, 4, 170004. DOI: 10.1038/sdata.2017.4 | 数据论文 | 人口栅格数据的官方引用；真实数据接入时引这一条 | 本次未接入真实 WorldPop（下载失败，用合成数据） |
-| R10 | 深圳市公安局，《关于加强深圳机场净空区域安全保护的通告》（深公规〔2017〕3号，2017-03-14） | 地方规范性文件 | 机场净空保护区的官方范围：跑道中心线两侧各 10 km、跑道端外 20 km | 不把它当无人机禁飞区；只标「受控/需审批」 |
+| R10 | 深圳市公安局，《关于加强深圳机场净空区域安全保护的通告》（深公规〔2017〕3号，2017-03-14） | 地方规范性文件 | 机场净空保护区的官方范围：跑道中心线两侧各 10 km、跑道端外 20 km | 通告原文「严禁」施放无人机，模型按硬禁飞（hard: true）处理；仍不判断具体飞行是否获批 |
 | R11 | 《无人驾驶航空器飞行管理暂行条例》（国务院、中央军委令第 761 号，2024-01-01 施行） | 行政法规 | 报告背景：120 m 真高、适飞空域、飞行活动申请的制度背景 | 不做合规判断；具体条文以原文为准 |
 
 > 说明：R1 是 2.5 版**草案**（external consultation），不是正式生效版本；报告里必须写「draft」。

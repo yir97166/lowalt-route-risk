@@ -40,8 +40,8 @@ class RiskConfig:
 class NoFlyZone:
     """空域约束。circle / polygon / runway_corridor。
 
-    hard=True 表示几何上不可通行；hard=False 表示「受控/需审批」区，
-    只在报告与图中标注，不参与硬掩膜（例如机场净空保护区）。
+    hard=True 表示几何上不可通行；hard=False 只作标注、不参与硬掩膜
+    （当前所有约束均为 hard=True：示意多边形 + 机场净空走廊）。
     runway_corridor 用 centerline 中心点 + 方位 + 半宽 + 端外延伸描述。
     """
 

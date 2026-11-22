@@ -23,11 +23,15 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
+# 吸附超过该距离，说明端点本身落在硬禁飞区里，应判不可达，而不是把端点挪走。
+MAX_SNAP_M = 300.0
+
 from src.config import load_config  # noqa: E402
 from src.grid import build_grid  # noqa: E402
 from src.graph import build_graph, graph_stats  # noqa: E402
 from src.mask import (  # noqa: E402
     blocked_mask,
+    feasible_od,
     nearest_free_cell,
     path_to_lonlat,
     restricted_mask,
@@ -71,8 +75,14 @@ def main() -> int:
     rows: list[dict] = []
     core_route = None
     for od in cfg.od_pairs:
-        s = nearest_free_cell(cfg, grid, blocked, *od.origin)
-        d = nearest_free_cell(cfg, grid, blocked, *od.destination)
+        s, d, feasible = feasible_od(cfg, grid, blocked, od, MAX_SNAP_M)
+        if not feasible:
+            print(f"{od.name}: 端点落在硬禁飞区内（吸附 {s.offset_m:.0f}/{d.offset_m:.0f} m），判不可达")
+            rows.append({"od": od.name, "lambda": 0.0, "reachable": False,
+                         "start_offset_m": round(s.offset_m, 1),
+                         "dest_offset_m": round(d.offset_m, 1),
+                         "note": "endpoint_in_hard_zone"})
+            continue
         try:
             route = plan_route(graph, grid, (s.row, s.col), (d.row, d.col))
         except Exception as exc:  # noqa: BLE001 - 批量实验里记录不可达即可
@@ -118,9 +128,11 @@ def main() -> int:
     out_csv.parent.mkdir(parents=True, exist_ok=True)
     df = pd.DataFrame(rows)
     df.to_csv(out_csv, index=False, encoding="utf-8")
-    n_bad = int((df.get("hard_crossings", pd.Series([0])) != 0).sum())
-    if "valid" in df:
-        n_bad = max(n_bad, int((~df["valid"].fillna(False)).sum()))
+    reach = df[df["reachable"].fillna(False)]
+    n_infeasible = int((~df["reachable"].fillna(False)).sum())
+    n_bad = int((reach["hard_crossings"] != 0).sum()) if len(reach) else 0
+    if "valid" in reach:
+        n_bad = max(n_bad, int((~reach["valid"].fillna(False)).sum()))
 
     assert core_route is not None
     lonlat = path_to_lonlat(list(core_route.cells), grid, cfg.crs_input)
@@ -136,10 +148,11 @@ def main() -> int:
 
     pop = load_population(cfg, grid)
     fig_path = plot_route(cfg, grid, pop, list(core_route.cells), cfg.resolve(args.out_fig))
-    print(f"指标：{out_csv}（{len(df)} 组 OD，失败/穿越 {n_bad}）")
+    print(f"指标：{out_csv}（{len(df)} 组 OD：可达 {len(reach)}，不可达 {n_infeasible}，"
+          f"穿越/无效 {n_bad}）")
     print(f"路线：{out_path}（{len(path_df)} 点，核心 OD）")
     print(f"图：{fig_path}")
-    return 0 if n_bad == 0 else 1
+    return 0 if (n_bad == 0 and core_route is not None) else 1
 
 
 if __name__ == "__main__":

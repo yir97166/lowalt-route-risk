@@ -34,12 +34,13 @@ data:
   synthetic_tif: data/processed/synthetic_population.tif
 
 no_fly:
-  # 官方机场净空保护区（深圳公安局 深公规〔2017〕3 号通告）：
+  # 官方机场净空保护区（深圳公安局 深公规〔2017〕3 号通告，2017-03-14）：
   # 距跑道中心线两侧各 10 km、跑道端外 20 km。几何按 AIP 2A-1：
   # ARP N22°38.3′ E113°48.7′ = (113.8117, 22.6383)，跑道磁方位 156°/336°，
   # 磁差 3°W → 真方位 159°；最长跑道 3800 m。
-  # 注意：该区是「受控/需审批」，不是几何禁飞；若当硬禁飞，深圳中西部
-  # 几乎全部不可通行，核心 OD 也无解。因此 hard: false，仅作覆盖率标注。
+  # 定性依据：通告第一条明确「严禁任何单位、组织和个人在深圳宝安国际机场地区
+  # 和机场净空保护区域内……施放影响飞行安全的……无人机」。因此按硬约束处理，
+  # 走廊内格子不可通行；核心案例改用净空区外的罗湖—福田。
   - name: szx_airport_protection_zone
     type: runway_corridor
     center: [113.8117, 22.6383]
@@ -47,8 +48,8 @@ no_fly:
     runway_length_m: 3800
     half_width_m: 10000
     end_extension_m: 20000
-    hard: false
-    note: 官方净空保护区尺寸；无人机飞行需审批，模型按受控区处理
+    hard: true
+    note: 官方净空保护区尺寸；按深公规〔2017〕3 号「严禁」表述作硬禁飞
   # 以下两个多边形仍是手工示意区，不代表官方禁飞区。
   - name: wutongshan_area
     type: polygon
@@ -65,24 +66,24 @@ od_pairs:
   # 坐标均为手工设定的近似 WGS84 值，仅用于方法演示；坐标来源与精度在
   # docs/decisions.md 记录，Day 3 已核对（南山起点偏移 107.7 m，用户确认暂不修正）。
   # 任务背景由用户 2026-11-19 确认，见 docs/decisions.md 第 12 条。
-  # 核心 OD：深圳北站——深圳湾（高铁乘客接驳）。
-  - name: north_station_to_shenzhen_bay
-    origin: [114.0295, 22.6103]
-    destination: [113.9450, 22.5170]
-  # 以下 4 组为 Day 10 扩展批量实验，代表性说明见 PLAN.md 与报告。
-  # 福田 CBD——宝安机场东：城市候机楼送机服务（值机/行李/旅客接驳）。
-  - name: futian_cbd_to_airport_east
-    origin: [114.0579, 22.5431]
-    destination: [113.8700, 22.6000]
-  # 南山——宝安：医疗样本急送（病理/血样冷链，30 分钟级时效）。
-  - name: nanshan_to_baoan
-    origin: [113.9300, 22.5300]
-    destination: [113.8800, 22.5900]
-  # 罗湖——福田：跨境快件（口岸到福田保税区/华强北急件）。
+  # 核心 OD：罗湖——福田（跨境快件；全程在机场净空保护区外，2026-11-22 起作主案例）。
   - name: luohu_to_futian
     origin: [114.0950, 22.5480]
     destination: [114.0300, 22.5400]
-  # 宝安中心——南山：商务通勤（宝安中心到后海总部基地，eVTOL 快线）。
+  # 以下 4 组为扩展批量实验，代表性说明见 PLAN.md 与报告。
+  # 深圳北站——深圳湾：高铁乘客接驳（终点落在净空区内，硬约束下预计无解，作反例）。
+  - name: north_station_to_shenzhen_bay
+    origin: [114.0295, 22.6103]
+    destination: [113.9450, 22.5170]
+  # 福田 CBD——宝安机场东：城市候机楼送机服务（值机/行李/旅客接驳；终点在净空区内）。
+  - name: futian_cbd_to_airport_east
+    origin: [114.0579, 22.5431]
+    destination: [113.8700, 22.6000]
+  # 南山——宝安：医疗样本急送（病理/血样冷链，30 分钟级时效；起点在净空区内）。
+  - name: nanshan_to_baoan
+    origin: [113.9300, 22.5300]
+    destination: [113.8800, 22.5900]
+  # 宝安中心——南山：商务通勤（宝安中心到后海总部基地，eVTOL 快线；两端都在净空区内）。
   - name: baoan_center_to_nanshan
     origin: [113.8830, 22.5550]
     destination: [113.9500, 22.5200]

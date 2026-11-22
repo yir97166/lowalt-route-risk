@@ -36,15 +36,17 @@ from src.config import load_config  # noqa: E402
 from src.data import load_grid_arrays  # noqa: E402
 from src.graph import build_graph  # noqa: E402
 from src.grid import build_grid  # noqa: E402
-from src.mask import blocked_mask, nearest_free_cell, restricted_mask, validate_path  # noqa: E402
+from src.mask import blocked_mask, feasible_od, restricted_mask, validate_path  # noqa: E402
 from src.router import pareto_mask, plan_route_weighted, route_exposure_m  # noqa: E402
 
+MAX_SNAP_M = 300.0
+
 SHORT = {
-    "north_station_to_shenzhen_bay": "北站—深圳湾（核心）",
-    "futian_cbd_to_airport_east": "福田—机场东",
-    "nanshan_to_baoan": "南山—宝安",
-    "luohu_to_futian": "罗湖—福田",
-    "baoan_center_to_nanshan": "宝安—南山",
+    "luohu_to_futian": "罗湖—福田（核心）",
+    "north_station_to_shenzhen_bay": "北站—深圳湾（不可达）",
+    "futian_cbd_to_airport_east": "福田—机场东（不可达）",
+    "nanshan_to_baoan": "南山—宝安（不可达）",
+    "baoan_center_to_nanshan": "宝安—南山（不可达）",
 }
 
 
@@ -73,8 +75,10 @@ def main() -> int:
     t0 = time.perf_counter()
 
     for od in cfg.od_pairs:
-        s = nearest_free_cell(cfg, grid, blocked, *od.origin)
-        d = nearest_free_cell(cfg, grid, blocked, *od.destination)
+        s, d, feasible = feasible_od(cfg, grid, blocked, od, MAX_SNAP_M)
+        if not feasible:
+            print(f"{od.name}: 端点落在硬禁飞区内，跳过（不参与 Pareto）")
+            continue
         start, goal = (s.row, s.col), (d.row, d.col)
         base_len = None
         base_exp = None

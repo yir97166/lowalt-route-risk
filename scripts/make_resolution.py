@@ -191,7 +191,7 @@ def main() -> int:
         Line2D([], [], color="#00e5ff", lw=2.4, label="λ=0 最短路"),
         Line2D([], [], color="#ff3df0", lw=2.4, label=f"λ={args.lam:g} 暴露加权"),
         Patch(facecolor="white", alpha=0.5, edgecolor="white", ls="--", label="硬禁飞（示意）"),
-        Line2D([], [], color="#ff4d4d", lw=1.2, ls="--", label="机场净空区（需审批）"),
+        Line2D([], [], color="#ff4d4d", lw=1.2, ls="--", label="机场净空区（硬禁飞）"),
     ]
     last_ax.legend(handles=handles, loc="lower left", fontsize=7.5, framealpha=0.9)
     fig.suptitle("核心 OD：网格分辨率敏感性（同一人口栅格，100/200/400 m）", fontsize=12)

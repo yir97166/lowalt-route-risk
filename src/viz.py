@@ -96,7 +96,7 @@ def plot_route(
         Patch(facecolor="white", alpha=0.5, edgecolor="white", ls="--",
               label="硬禁飞区（示意）"),
         Line2D([], [], color="#ff4d4d", lw=1.5, ls="--",
-               label="机场净空保护区（需审批）"),
+               label="机场净空保护区（硬禁飞）"),
     ]
     ax.legend(handles=handles, loc="lower left", fontsize=9, framealpha=0.9)
     ax.set_title(
@@ -189,7 +189,7 @@ def plot_route_compare(
                markeredgecolor="black", label="终点 D"),
         Patch(facecolor="white", alpha=0.5, edgecolor="white", ls="--",
               label="硬禁飞区（示意）"),
-        Line2D([], [], color="#ff4d4d", lw=1.5, ls="--", label="机场净空保护区（需审批）"),
+        Line2D([], [], color="#ff4d4d", lw=1.5, ls="--", label="机场净空保护区（硬禁飞）"),
     ]
     ax.legend(handles=handles, loc="lower left", fontsize=9, framealpha=0.9)
     ax.set_title(
@@ -261,7 +261,7 @@ def plot_population_map(
     zone_handles.append(Patch(facecolor="white", alpha=0.5, edgecolor="white", ls="--",
                               label="硬禁飞区（示意）：两个敏感多边形"))
     zone_handles.append(Line2D([], [], color="#ff4d4d", lw=1.8, ls="--",
-                               label="机场净空保护区（官方尺寸，需审批）"))
+                               label="机场净空保护区（官方尺寸，硬禁飞）"))
 
     od = cfg.od_pairs[od_index]
     ax.scatter(*od.origin, marker="^", s=170, c="#20d020", edgecolor="black", zorder=6)

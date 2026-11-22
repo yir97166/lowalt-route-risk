@@ -26,12 +26,16 @@ import pandas as pd
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
+# 与 make_baseline 一致：吸附超过 300 m 视为端点落在硬禁飞区内，判不可达。
+MAX_SNAP_M = 300.0
+
 from src.config import load_config  # noqa: E402
 from src.data import load_grid_arrays  # noqa: E402
 from src.graph import build_graph, graph_stats  # noqa: E402
 from src.grid import build_grid  # noqa: E402
 from src.mask import (  # noqa: E402
     blocked_mask,
+    feasible_od,
     nearest_free_cell,
     path_to_lonlat,
     restricted_mask,
@@ -65,8 +69,14 @@ def main() -> int:
     rows: list[dict] = []
     core = None
     for od in cfg.od_pairs:
-        s = nearest_free_cell(cfg, grid, blocked, *od.origin)
-        d = nearest_free_cell(cfg, grid, blocked, *od.destination)
+        s, d, feasible = feasible_od(cfg, grid, blocked, od, MAX_SNAP_M)
+        if not feasible:
+            print(f"{od.name}: 端点落在硬禁飞区内（吸附 {s.offset_m:.0f}/{d.offset_m:.0f} m），判不可达")
+            rows.append({"od": od.name, "lambda": args.lam, "reachable": False,
+                         "start_offset_m": round(s.offset_m, 1),
+                         "dest_offset_m": round(d.offset_m, 1),
+                         "note": "endpoint_in_hard_zone"})
+            continue
         start, goal = (s.row, s.col), (d.row, d.col)
         try:
             base = plan_route_weighted(graph, grid, start, goal, exposure, lam=0.0)
@@ -86,7 +96,7 @@ def main() -> int:
 
         print(f"{od.name}: baseline {base.length_m / 1000:.3f} km / "
               f"加权 {wtd.length_m / 1000:.3f} km（{delta_pct:+.2f}%）· "
-              f"暴露 {exp_base_m / 1000:.3f} → {exp_wtd_m / 1000:.3f}（{exp_drop:+.1f}%）· "
+              f"暴露 {exp_base_m / 1000:.3f} → {exp_wtd_m / 1000:.3f}（下降 {exp_drop:.1f}%）· "
               f"穿越 {check.crossings}，ok={check.ok}")
         rows.append({
             "od": od.name,
@@ -133,10 +143,13 @@ def main() -> int:
         cfg.resolve(args.out_fig), lam=args.lam,
         od_label=f"核心 OD：{cfg.od_pairs[0].name}",
     )
-    n_bad = int((df["hard_crossings"] != 0).sum()) if "hard_crossings" in df else 0
-    if "valid" in df:
-        n_bad = max(n_bad, int((~df["valid"].fillna(False)).sum()))
-    print(f"指标：{out_csv}（{len(df)} 组 OD，穿越/无效 {n_bad}）")
+    reach = df[df["reachable"].fillna(False)]
+    n_infeasible = int((~df["reachable"].fillna(False)).sum())
+    n_bad = int((reach["hard_crossings"] != 0).sum()) if "hard_crossings" in reach else 0
+    if "valid" in reach:
+        n_bad = max(n_bad, int((~reach["valid"].fillna(False)).sum()))
+    print(f"指标：{out_csv}（{len(df)} 组 OD：可达 {len(reach)}，不可达 {n_infeasible}，"
+          f"穿越/无效 {n_bad}）")
     print(f"图：{fig}")
     return 0 if n_bad == 0 else 1
 
