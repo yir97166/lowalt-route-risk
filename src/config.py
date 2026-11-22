@@ -81,6 +81,9 @@ class ODPair:
     name: str
     origin: tuple[float, float]  # (lon, lat) WGS84
     destination: tuple[float, float]
+    # core：核心案例；batch：批量实验；infeasible_example：端点落在硬禁飞区、
+    # 只作反例、不参与批量统计（2026-11-22 起）。
+    role: str = "batch"
 
 
 @dataclass(frozen=True)
@@ -181,6 +184,7 @@ def load_config(path: str | Path | None = None) -> Config:
             name=str(item["name"]),
             origin=(float(item["origin"][0]), float(item["origin"][1])),
             destination=(float(item["destination"][0]), float(item["destination"][1])),
+            role=str(item.get("role", "batch")),
         )
         for item in raw.get("od_pairs", [])
     )

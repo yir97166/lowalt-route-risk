@@ -100,6 +100,7 @@
 | 16 | 文献依据统一收口到 `docs/literature.md`（R1–R11，均经 Crossref/原文核对）；报告只引表内条目，不新增未核实引用 | 专家第 4 条要求引用给全；自查发现「遮蔽 0.30 / 高度因子」都没有文献支撑，必须显式标注而不是补引用 | `docs/literature.md`；Crossref DOI 核对，2026-11-21 |
 | 17 | 遮蔽系数保留 0.30，但补做敏感性：s=0.2/0.3/0.4 下路线集合相同，阈值按 1/(1−s) 平移（0.975/1.100/1.275） | 0.30 无依据；把「常数乘子只平移 λ 阈值」证明出来，比换一个更精确的假常数更诚实，也说明结论对该参数稳健 | `scripts/make_param_sensitivity.py`；`results/param_sensitivity_summary.csv`；`figures/07_param_sensitivity.png`；2026-11-21 定，2026-11-22 按新核心 OD 复核 |
 | 18 | 核心案例由深圳北—深圳湾改为罗湖—福田；机场周边 4 组 OD 记为「端点落在硬禁飞区、不可达」 | 净空区改硬约束后，原核心 OD 终点在走廊内，无法在诚实约束下求解；换一个全程在走廊外、任务背景成立（跨境快件）的 OD，比挪端点凑可达更可辩护 | `configs/aoi.yaml`；`results/baseline.csv` 的 `note=endpoint_in_hard_zone`；`src/mask.py::feasible_od`；2026-11-22 用户同意 |
+| 19 | 批量 OD 设计（2026-11-22 用户拍板）：机场向 4 组 OD 保留为「净空区内不宜设起降点」反例（`role: infeasible_example`）；另选 5 组走廊外 OD 做批量——罗湖—福田（核心）、福田—罗湖、北站—福田、龙华—福田、布吉—罗湖（`role: core/batch`） | 机场向 OD 全不可达，批量实验需要可飞、任务背景成立、且能覆盖不同长度/人群密度的样本；把「不可达」与「可飞」分开统计，比硬凑可达更诚实 | `configs/aoi.yaml`；`results/od_summary.csv`；`figures/10_batch_od.png`；`tests/test_config.py` |
 
 当前吸附结果（200 m 网格，2026-11-22 复跑）：
 

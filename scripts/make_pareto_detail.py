@@ -58,13 +58,27 @@ MAX_SNAP_M = 300.0
 from src.metrics import route_metrics  # noqa: E402
 from src.router import plan_route_weighted  # noqa: E402
 
-SHORT = {
-    "north_station_to_shenzhen_bay": "北站—深圳湾（不可达）",
+SHORT_NAMES = {
+    "luohu_to_futian": "罗湖—福田",
+    "futian_to_luohu": "福田—罗湖",
+    "north_station_to_futian": "北站—福田",
+    "longhua_to_futian": "龙华—福田",
+    "buji_to_luohu": "布吉—罗湖",
+    "north_station_to_shenzhen_bay": "北站—深圳湾",
     "futian_cbd_to_airport_east": "福田—机场东",
     "nanshan_to_baoan": "南山—宝安",
-    "luohu_to_futian": "罗湖—福田（核心）",
-    "baoan_center_to_nanshan": "宝安—南山",
+    "baoan_center_to_nanshan": "宝安—南山"
 }
+
+
+def short_label(od) -> str:
+    base = SHORT_NAMES.get(od.name, od.name)
+    if od.role == "core":
+        return base + "（核心）"
+    if od.role == "infeasible_example":
+        return base + "（不可达）"
+    return base
+
 DEDUP_RULE = ("同一 OD 下，两条路线若格心序列完全相同（逐格相同，含起终点格），"
               "视为同一个解；等长但格心序列不同的算两个解（等长解）。")
 
@@ -136,7 +150,7 @@ def main() -> int:
             lams = info["lambdas"]
             route_rows.append({
                 "od": od.name,
-                "od_short": SHORT.get(od.name, od.name),
+                "od_short": short_label(od),
                 "route_id": rid,
                 "first_lambda": float(min(lams)),
                 "last_lambda": float(max(lams)),
@@ -156,7 +170,7 @@ def main() -> int:
             first_b = min(by_hash[b]["lambdas"])
             trans_rows.append({
                 "od": od.name,
-                "od_short": SHORT.get(od.name, od.name),
+                "od_short": short_label(od),
                 "from_route": order.index(a) + 1,
                 "to_route": order.index(b) + 1,
                 "swap_at_lambda": float(first_b),

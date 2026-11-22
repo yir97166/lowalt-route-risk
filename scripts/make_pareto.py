@@ -41,13 +41,27 @@ from src.router import pareto_mask, plan_route_weighted, route_exposure_m  # noq
 
 MAX_SNAP_M = 300.0
 
-SHORT = {
-    "luohu_to_futian": "罗湖—福田（核心）",
-    "north_station_to_shenzhen_bay": "北站—深圳湾（不可达）",
-    "futian_cbd_to_airport_east": "福田—机场东（不可达）",
-    "nanshan_to_baoan": "南山—宝安（不可达）",
-    "baoan_center_to_nanshan": "宝安—南山（不可达）",
+SHORT_NAMES = {
+    "luohu_to_futian": "罗湖—福田",
+    "futian_to_luohu": "福田—罗湖",
+    "north_station_to_futian": "北站—福田",
+    "longhua_to_futian": "龙华—福田",
+    "buji_to_luohu": "布吉—罗湖",
+    "north_station_to_shenzhen_bay": "北站—深圳湾",
+    "futian_cbd_to_airport_east": "福田—机场东",
+    "nanshan_to_baoan": "南山—宝安",
+    "baoan_center_to_nanshan": "宝安—南山"
 }
+
+
+def short_label(od) -> str:
+    base = SHORT_NAMES.get(od.name, od.name)
+    if od.role == "core":
+        return base + "（核心）"
+    if od.role == "infeasible_example":
+        return base + "（不可达）"
+    return base
+
 
 
 def main() -> int:
@@ -94,6 +108,7 @@ def main() -> int:
             exp_drop = (1.0 - expo / base_exp) * 100.0 if base_exp > 0 else 0.0
             od_rows.append({
                 "od": od.name,
+                "od_short": short_label(od),
                 "lambda": float(lam),
                 "length_m": round(route.length_m, 1),
                 "length_km": round(route.length_m / 1000.0, 3),
@@ -118,7 +133,7 @@ def main() -> int:
                 "od": r["od"], "lambda": r["lambda"], "length_km": r["length_km"],
                 "exposure_km": r["exposure_km"], "detour_ratio": r["detour_ratio"],
             })
-        per_od[od.name] = list(zip(
+        per_od[short_label(od)] = list(zip(
             df_od["delta_len_pct"], df_od["exposure_drop_pct"], df_od["lambda"]))
         n_front = int(mask.sum())
         print(f"{od.name}: {len(df_od)} 个 λ · 前沿 {n_front} 点 · "
@@ -159,7 +174,7 @@ def main() -> int:
         pts = sorted(pts)
         xs = [p[0] for p in pts]
         ys = [p[1] for p in pts]
-        ax2.plot(xs, ys, marker="o", ms=3, lw=1.4, label=SHORT.get(name, name))
+        ax2.plot(xs, ys, marker="o", ms=3, lw=1.4, label=name)
     ax2.axhline(0.0, color="gray", lw=0.8, ls="--")
     ax2.axvline(0.0, color="gray", lw=0.8, ls="--")
     ax2.set_xlabel("路线长度变化（%，相对 λ=0）")

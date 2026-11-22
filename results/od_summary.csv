@@ -1,0 +1,6 @@
+od,role,reachable,snap_origin_m,snap_dest_m,base_length_km,length_km,straight_km,detour_ratio,C_lambda0,C_lambda1,C_change_pct,length_change_pct,hard_crossings,restricted_cells,valid
+luohu_to_futian,core,True,91.7,70.0,7.014,7.014,6.675,1.0508,4.388,4.326,-1.41,0.0,0,0,True
+futian_to_luohu,batch,True,70.0,91.7,7.014,7.014,6.675,1.0508,4.442,4.326,-2.62,0.0,0,0,True
+north_station_to_futian,batch,True,66.5,70.0,7.883,7.883,7.803,1.0103,1.619,1.619,0.0,0.0,0,0,True
+longhua_to_futian,batch,True,119.1,70.0,11.683,12.677,11.602,1.0927,2.828,1.793,-36.62,8.51,0,0,True
+buji_to_luohu,batch,True,122.2,91.7,5.697,5.697,5.337,1.0675,1.568,1.519,-3.11,0.0,0,0,True

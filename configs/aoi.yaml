@@ -64,26 +64,57 @@ no_fly:
 
 od_pairs:
   # 坐标均为手工设定的近似 WGS84 值，仅用于方法演示；坐标来源与精度在
-  # docs/decisions.md 记录，Day 3 已核对（南山起点偏移 107.7 m，用户确认暂不修正）。
-  # 任务背景由用户 2026-11-19 确认，见 docs/decisions.md 第 12 条。
-  # 核心 OD：罗湖——福田（跨境快件；全程在机场净空保护区外，2026-11-22 起作主案例）。
+  # docs/decisions.md 记录，用户已确认「先这样」，报告逐个标注 snap_offset_m。
+  # role: core = 核心案例；batch = 批量实验；infeasible_example = 端点落在硬禁飞区、
+  # 只作「净空区内不宜设起降点」的反例，不参与批量统计（2026-11-22 约定，decisions 第 19 条）。
+
+  # —— 核心案例（也是批量实验之一）：罗湖——福田，跨境快件 ——
   - name: luohu_to_futian
+    role: core
     origin: [114.0950, 22.5480]
     destination: [114.0300, 22.5400]
-  # 以下 4 组为扩展批量实验，代表性说明见 PLAN.md 与报告。
-  # 深圳北站——深圳湾：高铁乘客接驳（终点落在净空区内，硬约束下预计无解，作反例）。
+
+  # —— 批量实验 5 组：全部在机场净空走廊以东，端点可吸附 ——
+  # 福田——罗湖：跨境快件反向（回程空箱/退件）。
+  - name: futian_to_luohu
+    role: batch
+    origin: [114.0300, 22.5400]
+    destination: [114.0950, 22.5480]
+  # 深圳北——福田：高铁乘客接驳（站到 CBD）。
+  - name: north_station_to_futian
+    role: batch
+    origin: [114.0295, 22.6103]
+    destination: [114.0300, 22.5400]
+  # 龙华——福田：商务通勤（龙华中心到福田 CBD）。
+  - name: longhua_to_futian
+    role: batch
+    origin: [114.0300, 22.6450]
+    destination: [114.0300, 22.5400]
+  # 布吉——罗湖：社区医疗样本送检（布吉到罗湖医院）。
+  - name: buji_to_luohu
+    role: batch
+    origin: [114.0850, 22.5950]
+    destination: [114.0950, 22.5480]
+
+  # —— 反例 4 组：端点落在官方净空走廊内，硬约束下判不可达 ——
+  # 这不是数据错误，是结论：净空保护区内不宜设起降点，需另选场地或走审批。
+  # 深圳北站——深圳湾：高铁乘客接驳（终点在净空区内）。
   - name: north_station_to_shenzhen_bay
+    role: infeasible_example
     origin: [114.0295, 22.6103]
     destination: [113.9450, 22.5170]
-  # 福田 CBD——宝安机场东：城市候机楼送机服务（值机/行李/旅客接驳；终点在净空区内）。
+  # 福田 CBD——宝安机场东：城市候机楼送机（终点在净空区内）。
   - name: futian_cbd_to_airport_east
+    role: infeasible_example
     origin: [114.0579, 22.5431]
     destination: [113.8700, 22.6000]
-  # 南山——宝安：医疗样本急送（病理/血样冷链，30 分钟级时效；起点在净空区内）。
+  # 南山——宝安：医疗样本急送（两端都在净空区内）。
   - name: nanshan_to_baoan
+    role: infeasible_example
     origin: [113.9300, 22.5300]
     destination: [113.8800, 22.5900]
-  # 宝安中心——南山：商务通勤（宝安中心到后海总部基地，eVTOL 快线；两端都在净空区内）。
+  # 宝安中心——南山：商务通勤（两端都在净空区内）。
   - name: baoan_center_to_nanshan
+    role: infeasible_example
     origin: [113.8830, 22.5550]
     destination: [113.9500, 22.5200]

@@ -1,5 +1,9 @@
 od,lambda,reachable,graph_nodes,graph_edges,graph_components,start_row,start_col,start_offset_m,dest_row,dest_col,dest_offset_m,n_cells,length_m,straight_m,detour_ratio,hard_crossings,min_clearance_m,restricted_cells,restricted_share,valid,note
 luohu_to_futian,0.0,True,7562.0,29496.0,1.0,57.0,125.0,91.7,62.0,92.0,70.0,34.0,7014.2,6675.3,1.0508,0.0,3261.5,0.0,0.0,True,
+futian_to_luohu,0.0,True,7562.0,29496.0,1.0,62.0,92.0,70.0,57.0,125.0,91.7,34.0,7014.2,6675.3,1.0508,0.0,3549.0,0.0,0.0,True,
+north_station_to_futian,0.0,True,7562.0,29496.0,1.0,23.0,91.0,66.5,62.0,92.0,70.0,40.0,7882.8,7802.6,1.0103,0.0,932.0,0.0,0.0,True,
+longhua_to_futian,0.0,True,7562.0,29496.0,1.0,4.0,91.0,119.1,62.0,92.0,70.0,59.0,11682.8,11601.7,1.007,0.0,932.0,0.0,0.0,True,
+buji_to_luohu,0.0,True,7562.0,29496.0,1.0,31.0,119.0,122.2,57.0,125.0,91.7,27.0,5697.1,5336.7,1.0675,0.0,6535.5,0.0,0.0,True,
 north_station_to_shenzhen_bay,0.0,False,,,,,,66.5,,,1856.3,,,,,,,,,,endpoint_in_hard_zone
 futian_cbd_to_airport_east,0.0,False,,,,,,68.9,,,5944.7,,,,,,,,,,endpoint_in_hard_zone
 nanshan_to_baoan,0.0,False,,,,,,2801.9,,,5395.1,,,,,,,,,,endpoint_in_hard_zone

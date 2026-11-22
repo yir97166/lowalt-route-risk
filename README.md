@@ -25,7 +25,7 @@
 | λ 扫描 | 21 档 λ → 7 个不同解、6 个切换点；长度 7.014–9.140 km，C 2.609–4.388 | `results/pareto.csv`、`results/pareto_routes.csv` |
 | 分辨率敏感性 | 100 / 200 / 400 m：沿路人口密度均下降（−11.2% / −6.2% / +1.0%） | `results/resolution.csv` |
 | 吸附偏移敏感性 | 起终点整体平移 ±0.5 格：C 最大变动 100 m ±2.0% / 200 m ±3.2% / 400 m ±9.2% | `results/origin_shift_summary.csv` |
-| 工程验证 | pytest **45 项**；8 步一键流程 39.7 s；CSV/PNG 可逐字节复现 | 见下 |
+| 工程验证 | pytest **49 项**；11 步一键流程 69.2 s；CSV/PNG 可逐字节复现 | 见下 |
 
 > 人口为合成数据（WorldPop 625 MB 当日无法稳定下载，按计划降级）。上表只证明方法链路与可复现性，
 > **不代表深圳真实人口或真实风险**。
@@ -119,26 +119,37 @@ lowalt-route-risk/
 - 文档：docs/assumptions.md §2/§3 补文献与敏感性；docs/decisions.md 第 16/17 条；
   本 README 补 Day 8 记录与文献索引。
 
-## Day 9 记录（2026-11-22，审核后修订 ①②③④）
+## Day 9 记录（2026-11-22，提前）
 
-外部审核（70/100，「有条件通过」）后优先处理四件可当天落地的：
+- 净空区口径纠正：深公规〔2017〕3 号原文是「严禁」施放无人机，机场净空走廊改
+  `hard: true`，硬禁飞格 4,982 格（39.7%）；核心案例换罗湖—福田（全程在走廊外）。
+- 机场周边 4 组 OD 的端点落在走廊内（吸附 1,254–6,380 m），如实判不可达，
+  不挪端点凑可达；4 组保留为「净空区内不宜设起降点」的反例。
+- 测试补全：新增 `tests/test_risk.py`（9）、`tests/test_grid.py`（8）、
+  `tests/test_config.py`（4），合计 **49 passed**。
+- 全管线重跑（`scripts/run_all.py` 11 步）：硬禁飞 4,982 格、图 7,562 节点、
+  核心 OD 7.014 km、λ=1 C 4,387.8→4,326.0（−1.4%）、Pareto 7 解 6 切换点。
+- 文档同步：README/PLAN/spec/assumptions/decisions/literature/pitch/pareto_reading
+  全部改到「硬禁飞 + 罗湖—福田」口径。
 
-- ④ 指标定死：新增 `src/metrics.py`（C / E / ρ̄）+ `docs/indicator_definition.md`；
-  修掉「累计暴露 2,840.3 m」的单位错误，新增 `tests/test_metrics.py`（6 项）。
-- ③ 吸附偏移：新增 `scripts/make_origin_shift.py`，±0.5 格 × 9 位置 × 3 分辨率 × 2 个 λ，
-  产出 `results/origin_shift*.csv`、`figures/08_origin_shift.png`。
-- ② Pareto 明细：新增 `scripts/make_pareto_detail.py`（λ 步长 0.025，按格心序列哈希去重），
-  产出 `results/pareto_routes.csv`（21 个解）、`results/pareto_transitions.csv`（16 个切换点）、
-  `figures/09_pareto_routes.png`、`docs/pareto_reading.md`。
-- 测试从 20 项增至 26 项，全部通过。
+## Day 10 记录（2026-11-22，提前）
+
+- 批量 OD 重新设计：4 组机场向 OD 作反例；新增 5 组走廊外 OD——
+  罗湖—福田（核心）、福田—罗湖、北站—福田、龙华—福田、布吉—罗湖。
+- `src/config.py` 的 `ODPair` 增加 `role`（core / batch / infeasible_example），
+  脚本按角色过滤，不再把反例混进批量统计。
+- 新增 `scripts/make_batch.py`：5 组各跑 λ=0 / λ=1，独立几何校验，输出
+  `results/od_summary.csv`、`figures/10_batch_od.png`。
+- 结果：5 组全部可达、0 穿越；龙华—福田出现真权衡（+8.5% 距离换 C −36.6%），
+  其余 4 组长度不变、只在等长解里降暴露（−1.4% ~ −3.1%）。
 
 ## 路线图
 
 - [x] Day 1–6：数据 → 网格/空域 → 最短路 → 加权 → λ 扫描/Pareto → 分辨率敏感性
 - [x] Day 7：周复盘 + README v0.1 + tag（2026-11-21 完成）
 - [x] Day 8：文献与暴露模型细化（2026-11-21 提前完成）
-- [ ] Day 9：测试补全（风险/图/掩膜/路线 4 类）
-- [ ] Day 10：5 组 OD 批量实验
+- [x] Day 9：净空硬禁飞 + 核心 OD 更换 + 测试补全（49 项，2026-11-22 提前）
+- [x] Day 10：5 组走廊外 OD 批量实验（2026-11-22 提前）
 - [ ] Day 11：高度层与缓冲情景敏感性
 - [ ] Day 12–21：CLI/整理、文献综述、6–8 页报告、英文摘要、3 分钟视频、发布
 
