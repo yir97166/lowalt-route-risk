@@ -178,6 +178,18 @@ lowalt-route-risk/
   `scenario_altitude*.csv` / `scenario_safety_area.csv`；测试 52 项（新增缩放等价、安全区单调性）。
 - 口径：只做情景敏感性；不写「高度越高越安全」，也不把安全区尺寸倍数当真实审批边界。
 
+## Day 13：日志、随机种子、异常处理（2026-11-23 提前）
+
+- 合成数据种子从硬编码改为 `configs/aoi.yaml` 的 `data.synthetic_seed: 42`；
+  `scripts/make_synthetic_data.py --seed N` 可覆盖。同种子两次跑出的 TIF/CSV 哈希一致。
+- 新增 `src/runlog.py`：`setup_logger`（控制台 + 文件双输出）、`write_summary`（原子写 JSON）。
+- `scripts/run_all.py`：每步记录 `step/label/command/seconds/exit`，写
+  `logs/run_all_<时间戳>.log` 与同名 `.json`，并复制为 `logs/latest.json`；
+  任一步失败即停止并保留 summary；Ctrl+C 记 `interrupted` 返回 130。
+- 实测 12 步 125.5 s；`pytest` 62 项（新增 4 项日志测试）。
+  `logs/` 已加入 `.gitignore`，不进仓库。
+- 口径：日志只记录运行事实，不改变结果；种子只影响合成人口，真实数据路径不受影响。
+
 ## 路线图
 
 - [x] Day 1–6：数据 → 网格/空域 → 最短路 → 加权 → λ 扫描/Pareto → 分辨率敏感性
@@ -187,7 +199,8 @@ lowalt-route-risk/
 - [x] Day 10：5 组走廊外 OD 批量实验（2026-11-22 提前）
 - [x] Day 11：高度层与安全区尺寸情景敏感性（2026-11-23 提前）
 - [x] Day 12：CLI、配置与代码整理（2026-11-23 提前）
-- [ ] Day 13–21：日志/种子、3 张核心图、6–8 页报告、英文摘要、3 分钟视频、发布
+- [x] Day 13：日志、随机种子、异常处理（2026-11-23 提前）
+- [ ] Day 14–21：3 张核心图、6–8 页报告、英文摘要、3 分钟视频、发布
 
 ## 引用
 

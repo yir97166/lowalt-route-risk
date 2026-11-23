@@ -113,3 +113,4 @@
   宝安中心—南山 6,380/1,254 m → 均判端点落在净空走廊内，不可达；
 - 吸附偏移 >300 m 一律判不可达；100–300 m 仍可运行但必须在报告中标注。
 | 23 | CLI 采用「编排脚本、不重复实现算法」：`src/cli.py` 按阶段调用既有 `scripts/*.py` | 单步可调试、整链可复现；避免 CLI 与脚本两套逻辑漂移。`all` 直接委托 `run_all.py`，`check` 调 pytest，`--dry-run` 便于审查 | `src/cli.py`；`tests/test_cli.py`；2026-11-23 |
+| 24 | 运行日志与种子口径：日志写 `logs/run_all_<时间戳>.log/.json` 并保留 `logs/latest.json`；合成数据种子放 `configs/aoi.yaml` 的 `data.synthetic_seed`，可用 `--seed` 覆盖 | 出问题能定位到「第几步、哪条命令、退出码」；同种子结果可复现；日志是运行事实、不改变结果 | `src/runlog.py`；`scripts/run_all.py`；`tests/test_runlog.py`；2026-11-23 |

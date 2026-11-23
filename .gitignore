@@ -11,5 +11,8 @@ data/processed/*
 pip-unpack-*/
 matplotlib-*/
 
+# 运行日志（每次跑都会变，不进仓库）
+logs/
+
 # 临时审阅目录（不进仓库）
 今天要看/

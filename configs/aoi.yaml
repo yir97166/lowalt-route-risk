@@ -32,6 +32,8 @@ risk:
 data:
   population_tif: data/raw/worldpop/chn_ppp_2020_100m.tif
   synthetic_tif: data/processed/synthetic_population.tif
+  # Day 13：合成数据的随机扰动种子；改这个数会得到不同的合成人口，但流程不变。
+  synthetic_seed: 42
 
 no_fly:
   # 官方机场净空保护区（深圳公安局 深公规〔2017〕3 号通告，2017-03-14）：

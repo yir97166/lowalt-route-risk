@@ -10,6 +10,7 @@
 """
 from __future__ import annotations
 
+import argparse
 from pathlib import Path
 
 import numpy as np
@@ -32,6 +33,11 @@ def gaussian(xx, yy, cx, cy, amp, sx, sy):
 
 
 def main() -> None:
+    parser = argparse.ArgumentParser(description="生成合成人口栅格（离线可跑）")
+    parser.add_argument("--seed", type=int, default=None,
+                        help="随机扰动种子；默认取 configs/aoi.yaml 的 data.synthetic_seed")
+    args = parser.parse_args()
+
     cfg = yaml.safe_load(CFG_PATH.read_text(encoding="utf-8"))
     minx, miny, maxx, maxy = cfg["aoi"]["bbox"]
     out_path = ROOT / cfg["data"]["synthetic_tif"]
@@ -57,7 +63,8 @@ def main() -> None:
     for cx, cy, amp, sx, sy in centers:
         pop += gaussian(xx, yy, cx, cy, amp, sx, sy)
 
-    rng = np.random.default_rng(42)
+    seed = args.seed if args.seed is not None else int(cfg["data"].get("synthetic_seed", 42))
+    rng = np.random.default_rng(seed)
     pop *= 0.9 + 0.2 * rng.random(pop.shape)
     pop = np.clip(pop, 0, None).astype("float32")
 
@@ -77,6 +84,7 @@ def main() -> None:
         dst.write(pop, 1)
 
     print(f"shape={pop.shape} min={pop.min():.1f} max={pop.max():.1f} mean={pop.mean():.1f}")
+    print(f"seed={seed}")
     print(f"written: {out_path}")
 
 
