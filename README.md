@@ -93,6 +93,7 @@ lowalt-route-risk/
 | `docs/data_sources.md` | 数据来源、许可与引用方式 |
 | `docs/progress_log.md` | Day 1–6 开发日志（含全部实测数字） |
 | `docs/contributions.md` | 人工核对记录（贡献台账） |
+| `docs/ownership_and_use.md` | **归属证据链与用途**：怎么证明是自己做的、能拿它干什么、署名模板 |
 
 ## 局限（写报告时必须保留）
 
