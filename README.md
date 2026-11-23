@@ -25,7 +25,7 @@
 | λ 扫描 | 21 档 λ → 7 个不同解、6 个切换点；长度 7.014–9.140 km，C 2.609–4.388 | `results/pareto.csv`、`results/pareto_routes.csv` |
 | 分辨率敏感性 | 100 / 200 / 400 m：沿路人口密度均下降（−11.2% / −6.2% / +1.0%） | `results/resolution.csv` |
 | 吸附偏移敏感性 | 起终点整体平移 ±0.5 格：C 最大变动 100 m ±2.0% / 200 m ±3.2% / 400 m ±9.2% | `results/origin_shift_summary.csv` |
-| 工程验证 | pytest **52 项**；12 步一键流程 124 s；CSV/PNG 可逐字节复现 | 见下 |
+| 工程验证 | pytest **58 项**；12 步一键流程 124 s；CSV/PNG 可逐字节复现 | 见下 |
 
 > 人口为合成数据（WorldPop 625 MB 当日无法稳定下载，按计划降级）。上表只证明方法链路与可复现性，
 > **不代表深圳真实人口或真实风险**。
@@ -35,10 +35,18 @@
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
-.\.venv\Scripts\python.exe scripts\run_all.py
+.\.venv\Scripts\python.exe -m src.cli all
 ```
 
-实测：安装约 2 分钟，全流程 8 步 **63.4 s**，产出 `figures/00–07`、`results/*.csv`、`data/processed/*`。
+等价于 `scripts/run_all.py`；也可只跑一个阶段：
+
+```powershell
+.\.venv\Scripts\python.exe -m src.cli check       # pytest -q
+.\.venv\Scripts\python.exe -m src.cli pareto      # 只重跑 Pareto
+.\.venv\Scripts\python.exe -m src.cli all --dry-run
+```
+
+实测：安装约 2 分钟，全流程 12 步 **124 s**，产出 `figures/00–12`、`results/*.csv`、`data/processed/*`。
 单独重跑某一步时，脚本彼此独立，见 `scripts/`。
 
 接入真实数据：把 WorldPop 100 m GeoTIFF 放到 `data/raw/worldpop/chn_ppp_2020_100m.tif` 并重跑，
@@ -70,10 +78,11 @@ lowalt-route-risk/
 ├─ PLAN.md                 # 21 天计划（v1.2）
 ├─ configs/aoi.yaml        # 区域、网格、禁飞/净空、5 组 OD
 ├─ src/                    # config / grid / data / risk / mask / graph / router / viz
+├─ src/                    # config / grid / data / risk / mask / graph / router / metrics / viz / cli
 ├─ scripts/                # 数据生成、各实验结果、run_all.py 一键复现
-├─ tests/                  # mask / graph / router，共 20 项
+├─ tests/                  # mask / graph / router / risk / grid / metrics / cli，共 58 项
 ├─ docs/                   # 设计、假设、决策、数据来源、日志、周报说明
-├─ figures/                # 00–07 核心图与敏感性图
+├─ figures/                # 00–12 核心图、批量图与敏感性图
 ├─ results/                # baseline / compare / pareto / resolution / 参数敏感性 CSV
 ├─ data/raw|processed/     # 原始数据（不入库）与处理结果
 └─ report/                 # 报告与视频（后续）
@@ -145,6 +154,15 @@ lowalt-route-risk/
 - 结果：5 组全部可达、0 穿越；龙华—福田出现真权衡（+8.5% 距离换 C −36.6%），
   其余 4 组长度不变、只在等长解里降暴露（−1.4% ~ −3.1%）。
 
+## Day 12 记录（2026-11-23，提前）
+
+- 新增 `src/cli.py`：`python -m src.cli {all|check|data|figure|grid|baseline|weighted|batch|pareto|resolution|scenarios}`，
+  统一入口、可单阶段重跑、`--dry-run` 只打印命令。
+- 设计原则：CLI 不重复算法，只编排既有脚本；单步仍可独立运行（`scripts/*.py`）。
+- 测试新增 `tests/test_cli.py` 6 项（阶段脚本存在、`all` 委托 run_all、`check` 调 pytest、
+  `--config` 透传、Pareto 两脚本顺序、阶段顺序），`pytest` 合计 **58 项**。
+- README 快速开始改为 `python -m src.cli all`，并列出单阶段命令。
+
 ## Day 11 记录（2026-11-23，提前）
 
 - 高度情景：同一暴露面乘 1.00 / 0.85 / 0.70 后重跑 λ 扫描。**路线序列完全不变**，
@@ -168,7 +186,8 @@ lowalt-route-risk/
 - [x] Day 9：净空硬禁飞 + 核心 OD 更换 + 测试补全（49 项，2026-11-22 提前）
 - [x] Day 10：5 组走廊外 OD 批量实验（2026-11-22 提前）
 - [x] Day 11：高度层与安全区尺寸情景敏感性（2026-11-23 提前）
-- [ ] Day 12–21：CLI/整理、文献综述、6–8 页报告、英文摘要、3 分钟视频、发布
+- [x] Day 12：CLI、配置与代码整理（2026-11-23 提前）
+- [ ] Day 13–21：日志/种子、3 张核心图、6–8 页报告、英文摘要、3 分钟视频、发布
 
 ## 引用
 
