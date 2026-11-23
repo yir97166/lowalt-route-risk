@@ -7,7 +7,7 @@
 
 | 来源 | 用途 | 地址 | 许可 | 备注 |
 |---|---|---|---|---|
-| WorldPop 2020 China 100 m | 地面风险 | https://www.worldpop.org/ | CC BY 4.0 | 首选；文件较大，需裁剪 |
+| WorldPop 2020 China 100 m | 地面风险 | https://www.worldpop.org/ | CC BY 4.0 | **已下载**：`data/raw/worldpop/chn_ppp_2020_UNadj_constrained.tif`（625,678,258 B），主实验数据 |
 | GHSL 2020 100 m | 备选 | https://ghsl.jrc.ec.europa.eu/ | CC BY 4.0 | WorldPop 下载失败时用 |
 
 裁剪到 `configs/aoi.yaml` 的 bbox；统一 EPSG:4326。

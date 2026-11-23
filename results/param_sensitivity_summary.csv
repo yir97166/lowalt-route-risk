@@ -1,4 +1,4 @@
 shelter,lambda_threshold,predicted_threshold,distinct_solutions
-0.2,0.975,0.963,8
-0.3,1.1,1.1,7
-0.4,1.275,1.283,6
+0.2,0.725,0.722,3
+0.3,0.825,0.825,3
+0.4,0.95,0.962,3

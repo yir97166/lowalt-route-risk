@@ -1,9 +1,9 @@
 od,lambda,reachable,base_length_m,weighted_length_m,delta_m,delta_pct,base_detour_ratio,weighted_detour_ratio,base_exposure_m,weighted_exposure_m,exposure_drop_pct,base_mean_exposure,weighted_mean_exposure,hard_crossings,restricted_cells,restricted_share,valid,same_as_baseline,start_offset_m,dest_offset_m,note
-luohu_to_futian,1.0,True,7014.2,7014.2,0.0,0.0,1.0508,1.0508,4387.8,4326.0,1.41,0.625555,0.616745,0.0,0.0,0.0,True,False,,,
-futian_to_luohu,1.0,True,7014.2,7014.2,0.0,0.0,1.0508,1.0508,4442.4,4326.0,2.62,0.633339,0.616745,0.0,0.0,0.0,True,False,,,
-north_station_to_futian,1.0,True,7882.8,7882.8,0.0,0.0,1.0103,1.0103,1619.1,1619.1,0.0,0.205395,0.205395,0.0,0.0,0.0,True,True,,,
-longhua_to_futian,1.0,True,11682.8,12677.0,994.1,8.509,1.007,1.0927,2828.4,1792.5,36.62,0.242102,0.141401,0.0,0.0,0.0,True,False,,,
-buji_to_luohu,1.0,True,5697.1,5697.1,0.0,0.0,1.0675,1.0675,1568.0,1519.3,3.11,0.275231,0.266673,0.0,0.0,0.0,True,False,,,
+luohu_to_futian,1.0,True,7014.2,7511.3,497.1,7.086,1.0508,1.1252,3922.2,2625.9,33.05,0.559186,0.34959,0.0,0.0,0.0,True,False,,,
+futian_to_luohu,1.0,True,7014.2,7511.3,497.1,7.086,1.0508,1.1252,3649.5,2625.9,28.05,0.520303,0.34959,0.0,0.0,0.0,True,False,,,
+north_station_to_futian,1.0,True,7882.8,7882.8,0.0,0.0,1.0103,1.0103,1383.9,1361.3,1.63,0.175562,0.172694,0.0,0.0,0.0,True,False,,,
+longhua_to_futian,1.0,True,11682.8,12677.0,994.1,8.509,1.007,1.0927,2983.7,1928.2,35.38,0.255395,0.152101,0.0,0.0,0.0,True,False,,,
+buji_to_luohu,1.0,True,5697.1,5697.1,0.0,0.0,1.0675,1.0675,1841.3,1468.5,20.25,0.323199,0.257759,0.0,0.0,0.0,True,False,,,
 north_station_to_shenzhen_bay,1.0,False,,,,,,,,,,,,,,,,,66.5,1856.3,endpoint_in_hard_zone
 futian_cbd_to_airport_east,1.0,False,,,,,,,,,,,,,,,,,68.9,5944.7,endpoint_in_hard_zone
 nanshan_to_baoan,1.0,False,,,,,,,,,,,,,,,,,2801.9,5395.1,endpoint_in_hard_zone

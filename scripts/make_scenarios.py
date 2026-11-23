@@ -236,7 +236,9 @@ def fig_altitude(summary: pd.DataFrame, detail: pd.DataFrame, out: Path) -> None
         ax1.scatter(d["lam"], d["length_km"], s=16, color=colors[alt], zorder=3)
     ax1.set_xlabel("λ")
     ax1.set_ylabel("核心 OD 路线长度（km）")
-    ax1.set_title("核心 OD：阈值 1.10 / 1.30 / 1.575（比例 = 1/f）")
+    core = summary[summary["od"] == "luohu_to_futian"]
+    th = {int(r["altitude_m"]): float(r["first_real_detour_lam"]) for _, r in core.iterrows()}
+    ax1.set_title(f"核心 OD：阈值 {th.get(60, float('nan')):.3f} / {th.get(90, float('nan')):.3f} / {th.get(120, float('nan')):.3f}（比例 = 1/f）")
     ax1.set_xlim(0, 2.0)
     ax1.legend(fontsize=9, loc="lower right")
     ax1.grid(alpha=0.25)
