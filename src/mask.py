@@ -38,6 +38,28 @@ def _corridor_geometry(cfg: Config, z) -> Polygon:
     return Polygon(corners)
 
 
+def scale_corridor(cfg: Config, factor: float) -> Config:
+    """返回走廊半宽/端外延伸同乘 ``factor`` 的配置副本（其余约束不变）。
+
+    只用于 Day 11 的缓冲敏感性；factor=1.0 时与原配置等价。
+    """
+    from dataclasses import replace
+
+    zones = []
+    for z in cfg.no_fly:
+        if z.kind == "runway_corridor":
+            zones.append(
+                replace(
+                    z,
+                    half_width_m=float(z.half_width_m) * factor,
+                    end_extension_m=float(z.end_extension_m) * factor,
+                )
+            )
+        else:
+            zones.append(z)
+    return replace(cfg, no_fly=tuple(zones))
+
+
 def zone_geometries(cfg: Config) -> list[tuple[str, BaseGeometry]]:
     """把空域约束转成 UTM 米制几何（含 hard=False 的受控区）。"""
     to_metric = Transformer.from_crs(cfg.crs_input, cfg.crs_metric, always_xy=True)

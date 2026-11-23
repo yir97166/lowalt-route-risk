@@ -134,7 +134,6 @@ def main() -> int:
             "detour_l1": round(wtd.detour_ratio, 4),
             "hard_crossings": check0.crossings + check1.crossings,
             "valid": bool(check0.ok and check1.ok),
-            "seconds": round(elapsed, 2),
         })
         panels.append({"cell_m": cell_m, "grid": grid, "pop": pop, "base": base,
                        "wtd": wtd, "exposure": exposure})

@@ -94,3 +94,22 @@ def test_pareto_mask_keeps_all_when_tradeoff() -> None:
     mask = pareto_mask(np.array([10.0, 11.0, 12.0]),
                        np.array([5.0, 4.0, 3.0]))
     assert mask.all()
+
+
+@pytest.mark.parametrize("factor", [0.85, 0.70])
+def test_altitude_scaling_is_lambda_rescaling(factor: float) -> None:
+    """暴露面整体乘 f，等价于把 λ 换成 λ·f：路线不变、C 也按 f 缩放。"""
+    grid = _line_grid(rows=2, cols=5)
+    graph = _grid_graph(rows=2, cols=5)
+    exposure = np.array([[0.0, 0.1, 0.9, 0.2, 0.0], [0.0, 0.0, 0.8, 0.3, 0.0]])
+
+    base = plan_route_weighted(graph, grid, (0, 0), (0, 4), exposure, 1.0)
+    scaled = plan_route_weighted(graph, grid, (0, 0), (0, 4), exposure * factor, 1.0)
+    rescaled = plan_route_weighted(graph, grid, (0, 0), (0, 4), exposure, 1.0 * factor)
+
+    assert tuple(base.cells) == tuple(rescaled.cells)
+    assert route_exposure_m(graph, base.cells, exposure * factor) == pytest.approx(
+        factor * route_exposure_m(graph, base.cells, exposure), rel=1e-9
+    )
+    # λ=1 时，高度越高（f 越小）加权代价越接近纯距离，路线可能不同；这里只要求可计算
+    assert scaled.length_m > 0

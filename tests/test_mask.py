@@ -159,3 +159,16 @@ def test_feasible_od_accepts_core(cfg, grid):
     s, d, ok = feasible_od(cfg, grid, blocked, od)
     assert ok
     assert max(s.offset_m, d.offset_m) <= 300.0
+
+
+def test_corridor_buffer_scaling_is_monotonic() -> None:
+    """缓冲倍数 0.5 < 1.0 < 1.5 时，不可通行格数应单调增加；1.0 与原配置一致。"""
+    from src.config import load_config
+    from src.grid import build_grid
+    from src.mask import blocked_mask, scale_corridor
+
+    cfg = load_config()
+    grid = build_grid(cfg)
+    counts = [int(blocked_mask(scale_corridor(cfg, f), grid).sum()) for f in (0.5, 1.0, 1.5)]
+    assert counts[0] < counts[1] < counts[2]
+    assert counts[1] == int(blocked_mask(cfg, grid).sum())

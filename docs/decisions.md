@@ -102,6 +102,9 @@
 | 18 | 核心案例由深圳北—深圳湾改为罗湖—福田；机场周边 4 组 OD 记为「端点落在硬禁飞区、不可达」 | 净空区改硬约束后，原核心 OD 终点在走廊内，无法在诚实约束下求解；换一个全程在走廊外、任务背景成立（跨境快件）的 OD，比挪端点凑可达更可辩护 | `configs/aoi.yaml`；`results/baseline.csv` 的 `note=endpoint_in_hard_zone`；`src/mask.py::feasible_od`；2026-11-22 用户同意 |
 | 19 | 批量 OD 设计（2026-11-22 用户拍板）：机场向 4 组 OD 保留为「净空区内不宜设起降点」反例（`role: infeasible_example`）；另选 5 组走廊外 OD 做批量——罗湖—福田（核心）、福田—罗湖、北站—福田、龙华—福田、布吉—罗湖（`role: core/batch`） | 机场向 OD 全不可达，批量实验需要可飞、任务背景成立、且能覆盖不同长度/人群密度的样本；把「不可达」与「可飞」分开统计，比硬凑可达更诚实 | `configs/aoi.yaml`；`results/od_summary.csv`；`figures/10_batch_od.png`；`tests/test_config.py` |
 
+| 20 | 高度层 60/90/120 只作情景：暴露面乘 1.00/0.85/0.70，不引入垂直代价 | 数值实验显示路线序列完全不变，只有 λ 阈值按 1/f 平移（核心 OD 1.100 / 1.300 / 1.575），C 也按 f 缩放（4,387.8→3,729.6→3,071.4）。原因：均匀缩放暴露等价于把 λ 换成 λ·f，模型里没有「高度改变几何」的机制；因此高度不是独立结论，只能当刻度看 | `scripts/make_scenarios.py`；`results/scenario_altitude_summary.csv`；`figures/11_altitude_scenario.png`；2026-11-23 |
+| 21 | 机场净空缓冲只作情景：半宽/端外延伸 ×0.5 / ×1.0 / ×1.5 | 不可通行 1,160（9.3%）/ 4,982（39.7%）/ 7,615（60.7%）；机场向 4 组 OD 可达 1/4 → 0/4 → 0/4；核心 OD 恒为 7.014 km。倍数不是真实审批边界，只用来说明结论对走廊尺寸假设的敏感度 | `results/scenario_buffer.csv`；`figures/12_buffer_scenario.png`；`src/mask.py::scale_corridor`；2026-11-23 |
+
 当前吸附结果（200 m 网格，2026-11-22 复跑）：
 
 - 核心 OD 罗湖—福田：起点 91.7 m、终点 70.0 m（均 <100 m）；

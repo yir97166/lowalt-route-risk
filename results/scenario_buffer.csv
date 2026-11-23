@@ -1,0 +1,4 @@
+buffer_factor,blocked_cells,blocked_pct,corridor_cells,corridor_pct,core_reachable,core_length_km,airport_ods_feasible,airport_ods_total,airport_max_snap_m
+0.5,1160,9.25,884,7.05,True,7.014,1,4,1031.1
+1.0,4982,39.72,4706,37.52,True,7.014,0,4,6380.2
+1.5,7615,60.71,7348,58.58,True,7.014,0,4,11390.8
