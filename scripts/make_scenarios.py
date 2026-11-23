@@ -1,4 +1,4 @@
-"""Day 11：高度层与机场缓冲区情景敏感性。
+"""Day 11：高度层与机场净空安全区尺寸情景敏感性。
 
 两个情景，都只做「如果……会怎样」的敏感性，不当结论：
 
@@ -6,15 +6,16 @@
    由于暴露是均匀缩放，边权 ``length × (1 + λ·f·e)`` 等价于把 λ 换成 ``λ·f``，
    路线几何应当完全不变，只有「切换阈值」沿 λ 轴平移。本脚本用数值实验验证
    这一点，并给出平移后的阈值；不声称「高度越高越安全」。
-2. 机场净空走廊缓冲：半宽与端外延伸同时乘 {0.5, 1.0, 1.5}，看不可通行格占比与
-   机场向 OD 的可达性怎么变，用来回答「走廊尺寸假设有多敏感」。
+2. 机场净空安全区尺寸：半宽与端外延伸同时乘 {0.5, 1.0, 1.5}，看不可通行格占比与
+   机场向 OD 的可达性怎么变，用来回答「安全区尺寸假设有多敏感」。
+   注：本模型把整条净空安全区当作一个主区（hard）；空域规划里的主区/副区细分尚未建模。
 
 输出：
 - ``results/scenario_altitude.csv``        每个 OD × 高度的切换点明细
 - ``results/scenario_altitude_summary.csv`` 每个 OD × 高度的汇总
-- ``results/scenario_buffer.csv``          缓冲倍数 × 覆盖率/可达性
+- ``results/scenario_safety_area.csv``     安全区尺寸倍数 × 覆盖率/可达性
 - ``figures/11_altitude_scenario.png``
-- ``figures/12_buffer_scenario.png``
+- ``figures/12_safety_area_scenario.png``
 """
 
 from __future__ import annotations
@@ -175,7 +176,7 @@ def run_buffer(cfg, grid, results_dir: Path) -> pd.DataFrame:
         c = scaled_cfg(cfg, fac)
         blocked = maskmod.blocked_mask(c, grid)
         corridor = _corridor(c)
-        corridor_cells = int(maskmod._mask_from_geometries(grid, [corridor]).sum())
+        safety_area_cells = int(maskmod._mask_from_geometries(grid, [corridor]).sum())
         graph = build_graph(grid, blocked)
         core = next(od for od in cfg.od_pairs if od.role == "core")
         s, g, ok = maskmod.feasible_od(c, grid, blocked, core)
@@ -193,11 +194,11 @@ def run_buffer(cfg, grid, results_dir: Path) -> pd.DataFrame:
             feas += int(ok2)
         rows.append(
             {
-                "buffer_factor": fac,
+                "safety_area_factor": fac,
                 "blocked_cells": int(blocked.sum()),
                 "blocked_pct": round(float(blocked.mean()) * 100.0, 2),
-                "corridor_cells": corridor_cells,
-                "corridor_pct": round(corridor_cells / blocked.size * 100.0, 2),
+                "safety_area_cells": safety_area_cells,
+                "safety_area_pct": round(safety_area_cells / blocked.size * 100.0, 2),
                 "core_reachable": bool(ok),
                 "core_length_km": core_len,
                 "airport_ods_feasible": feas,
@@ -206,7 +207,7 @@ def run_buffer(cfg, grid, results_dir: Path) -> pd.DataFrame:
             }
         )
     df = pd.DataFrame(rows)
-    df.to_csv(results_dir / "scenario_buffer.csv", index=False, encoding="utf-8")
+    df.to_csv(results_dir / "scenario_safety_area.csv", index=False, encoding="utf-8")
     return df
 
 
@@ -282,7 +283,7 @@ def fig_buffer(cfg, grid, df: pd.DataFrame, out: Path) -> None:
         c = scaled_cfg(cfg, fac)
         xs, ys = _corridor(c).exterior.xy
         lon, lat = to_geo.transform(np.asarray(xs), np.asarray(ys))
-        ax1.plot(lon, lat, ls="--", lw=1.6, color=color, label=f"缓冲 ×{fac}（走廊格 {df.set_index('buffer_factor').loc[fac,'corridor_cells']}）")
+        ax1.plot(lon, lat, ls="--", lw=1.6, color=color, label=f"安全区 ×{fac}（安全区格 {df.set_index('safety_area_factor').loc[fac,'safety_area_cells']}）")
         if fac == 1.0:
             ax1.fill(lon, lat, color="#d62728", alpha=0.10)
     for od in cfg.od_pairs:
@@ -294,24 +295,24 @@ def fig_buffer(cfg, grid, df: pd.DataFrame, out: Path) -> None:
     ax1.set_ylim(cfg.bbox[1], cfg.bbox[3])
     ax1.set_xlabel("经度（°E）")
     ax1.set_ylabel("纬度（°N）")
-    ax1.set_title("缓冲情景：走廊轮廓 ×0.5 / ×1.0 / ×1.5")
+    ax1.set_title("安全区尺寸情景：轮廓 ×0.5 / ×1.0 / ×1.5")
     ax1.legend(fontsize=8, loc="lower left")
     ax1.grid(alpha=0.2)
 
-    ax2.bar(df["buffer_factor"].astype(str), df["blocked_pct"], color="#d62728", alpha=0.85)
+    ax2.bar(df["safety_area_factor"].astype(str), df["blocked_pct"], color="#d62728", alpha=0.85)
     for _, r in df.iterrows():
         ax2.text(
-            str(r["buffer_factor"]), r["blocked_pct"] + 0.6,
+            str(r["safety_area_factor"]), r["blocked_pct"] + 0.6,
             f"{r['blocked_cells']} 格\n机场向可达 {int(r['airport_ods_feasible'])}/{int(r['airport_ods_total'])}",
             ha="center", fontsize=8,
         )
-    ax2.set_xlabel("缓冲倍数（半宽与端外延伸同乘）")
+    ax2.set_xlabel("安全区尺寸倍数（半宽与端外延伸同乘）")
     ax2.set_ylabel("不可通行格占比（%）")
-    ax2.set_title("缓冲越大，机场向 OD 越不可达")
+    ax2.set_title("安全区越大，机场向 OD 越不可达")
     ax2.set_ylim(0, max(df["blocked_pct"]) * 1.35)
     ax2.grid(axis="y", alpha=0.25)
 
-    fig.suptitle("机场净空走廊缓冲情景敏感性（核心 OD 罗湖—福田不受影响）", fontsize=12)
+    fig.suptitle("机场净空安全区尺寸敏感性（核心 OD 罗湖—福田不受影响）", fontsize=12)
     fig.savefig(out, dpi=200)
     plt.close(fig)
 
@@ -328,13 +329,13 @@ def main() -> int:
     summary, detail = run_altitude(cfg, grid, graph, exposure, results_dir)
     buffer_df = run_buffer(cfg, grid, results_dir)
     fig_altitude(summary, detail, cfg.resolve("figures/11_altitude_scenario.png"))
-    fig_buffer(cfg, grid, buffer_df, cfg.resolve("figures/12_buffer_scenario.png"))
+    fig_buffer(cfg, grid, buffer_df, cfg.resolve("figures/12_safety_area_scenario.png"))
 
     print("高度情景汇总：")
     print(summary.to_string(index=False))
-    print("\n缓冲情景汇总：")
+    print("\n安全区尺寸情景汇总：")
     print(buffer_df.to_string(index=False))
-    print("\n图：figures/11_altitude_scenario.png, figures/12_buffer_scenario.png")
+    print("\n图：figures/11_altitude_scenario.png, figures/12_safety_area_scenario.png")
     return 0
 
 

@@ -30,7 +30,7 @@
    截「12 steps finished」那屏，存 `docs/evidence/2026xxxx-runall.png`。
 2. **亲手改一个参数**：比如把 `configs/aoi.yaml` 里 `shelter` 从 0.30 改 0.20，重跑
    `make_pareto.py`，看阈值从 1.100 变到 0.975，截图存证，并在 contributions 记一行。
-3. **手算核对一个数**：拿 `results/scenario_buffer.csv`，用计算器算 4,982/12,544 = 39.7%，
+3. **手算核对一个数**：拿 `results/scenario_safety_area.csv`，用计算器算 4,982/12,544 = 39.7%，
    截图；或手算核心 OD 的绕行率 7.014/6.675≈1.051。
 
 > 这三件事做完，你在面试里就能说「这个数我自己复算过」，而不是「AI 说的」。

@@ -41,7 +41,7 @@ def _corridor_geometry(cfg: Config, z) -> Polygon:
 def scale_corridor(cfg: Config, factor: float) -> Config:
     """返回走廊半宽/端外延伸同乘 ``factor`` 的配置副本（其余约束不变）。
 
-    只用于 Day 11 的缓冲敏感性；factor=1.0 时与原配置等价。
+    只用于 Day 11 的机场净空安全区尺寸敏感性；factor=1.0 时与原配置等价。
     """
     from dataclasses import replace
 
