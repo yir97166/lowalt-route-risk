@@ -116,3 +116,4 @@
 - 吸附偏移 >300 m 一律判不可达；100–300 m 仍可运行但必须在报告中标注。
 | 26 | 正式图统一定稿为 300 dpi；新增宽幅空域图用米制坐标（EPSG:32649）完整显示净空走廊，并把 AOI 内受约束部分加深标出 | AOI 只有 25×19 km，机场走廊向西南延伸出 AOI；只画 AOI 内边界会被误读为「机场与本研究无关」。经纬度直接画图会因 1° 经度≠1° 纬度而形变，故用米制、等比例 | `scripts/make_airspace_wide.py`；`figures/13_airspace_wide.png`；`scripts/run_all.py` 第 13 步；2026-11-24 |
 | 27 | 报告以 Markdown 为唯一内容源，`scripts/build_report_docx.py` 渲染 docx/pdf；图统一编号图 1–图 4；外部方法（A*/RRT*/iGRC 分档）不实现，只写「为什么不算更强基线」与可执行对比设计 | 单一内容源避免两处数字不一致；没有外部基线数据时不伪称对比；A*/RRT* 与 Dijkstra 在同网格上最优解相同 | `report/report_zh.md`、`scripts/build_report_docx.py`、报告 §4.4；2026-11-24 |
+| 28 | 报告图按「印刷宽度」重画：6.5 in 画布、9–10 pt 字号，正文按 14.2 cm 放置；引用改上标数字 | 避免整图缩到 11.6 cm 后字号只剩 3–4 pt；上标比 [n] 更接近期刊排版 | `scripts/make_report_figures.py`；`figures/report/`；2026-11-24 |

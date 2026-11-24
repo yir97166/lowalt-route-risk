@@ -74,9 +74,16 @@ def add_footer_page_number(section) -> None:
 
 
 INLINE = re.compile(r"(\*\*.+?\*\*|\*[^*]+\*|`[^`]+`)")
+CITE = re.compile(r"(\[\d+(?:[–-]\d+)?(?:,\s*\d+)*\])")
+FIG_MAP = {
+    "13_airspace_wide.png": "figures/report/fig1_airspace.png",
+    "00_population.png": "figures/report/fig2_population.png",
+    "03_route_compare.png": "figures/report/fig3_routes.png",
+    "05_pareto.png": "figures/report/fig4_pareto.png",
+}
 
 
-def add_rich(paragraph, text: str, size: float = 10.5) -> None:
+def add_rich(paragraph, text: str, size: float = 10.5, citations: bool = True) -> None:
     for piece in INLINE.split(text):
         if not piece:
             continue
@@ -91,8 +98,16 @@ def add_rich(paragraph, text: str, size: float = 10.5) -> None:
             run = paragraph.add_run(piece[1:-1])
             set_font(run, size - 0.5, mono=True)
         else:
-            run = paragraph.add_run(piece)
-            set_font(run, size)
+            for seg in (CITE.split(piece) if citations else [piece]):
+                if not seg:
+                    continue
+                if CITE.fullmatch(seg):
+                    run = paragraph.add_run(seg[1:-1])
+                    set_font(run, size - 1.5)
+                    run.font.superscript = True
+                else:
+                    run = paragraph.add_run(seg)
+                    set_font(run, size)
 
 
 def add_table(doc, rows: list[list[str]]) -> None:
@@ -113,19 +128,33 @@ def add_table(doc, rows: list[list[str]]) -> None:
             para.paragraph_format.space_before = Pt(2)
             para.paragraph_format.space_after = Pt(2)
             para.paragraph_format.line_spacing = 1.0
-            add_rich(para, cell_text.strip(), size=9)
+            add_rich(para, cell_text.strip(), size=9, citations=False)
             if r == 0:
-                shade(cell, "E8EEF7")
+                shade(cell, "1F3864")
                 for run in para.runs:
                     run.font.bold = True
+                    run.font.color.rgb = RGBColor(0xFF, 0xFF, 0xFF)
+            elif r % 2 == 0:
+                shade(cell, "F4F7FB")
+    tbl_borders = OxmlElement("w:tblBorders")
+    for edge in ("top", "left", "bottom", "right", "insideH", "insideV"):
+        el = OxmlElement(f"w:{edge}")
+        el.set(qn("w:val"), "single")
+        el.set(qn("w:sz"), "4")
+        el.set(qn("w:color"), "C9D2E3")
+        tbl_borders.append(el)
+    tblPr.append(tbl_borders)
 
 
 def add_image(doc, path: Path, caption: str) -> None:
+    mapped = FIG_MAP.get(path.name)
+    if mapped:
+        path = ROOT / mapped
     pic_para = doc.add_paragraph()
     pic_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    pic_para.paragraph_format.space_before = Pt(4)
+    pic_para.paragraph_format.space_before = Pt(6)
     pic_para.paragraph_format.space_after = Pt(2)
-    pic_para.add_run().add_picture(str(path), width=Cm(11.6))
+    pic_para.add_run().add_picture(str(path), width=Cm(14.2))
     pic_para.paragraph_format.keep_with_next = True
     cap = doc.add_paragraph()
     cap.alignment = WD_ALIGN_PARAGRAPH.CENTER
@@ -143,8 +172,8 @@ def build() -> None:
     section.page_height = Cm(29.7)
     section.left_margin = Cm(2.0)
     section.right_margin = Cm(2.0)
-    section.top_margin = Cm(1.9)
-    section.bottom_margin = Cm(1.9)
+    section.top_margin = Cm(1.8)
+    section.bottom_margin = Cm(1.8)
 
     styles = doc.styles
     normal = styles["Normal"]
@@ -157,7 +186,7 @@ def build() -> None:
                               ("Heading 3", 11, "2E5496")):
         st = styles[name]
         set_font(st, size, bold=True, color=color)
-        st.paragraph_format.space_before = Pt(12 if name == "Heading 1" else 8)
+        st.paragraph_format.space_before = Pt(10 if name == "Heading 1" else 7)
         st.paragraph_format.space_after = Pt(4)
         st.paragraph_format.keep_with_next = True
 
@@ -207,6 +236,15 @@ def build() -> None:
             para = doc.add_paragraph(line[3:].strip(), style="Heading 2")
             for run in para.runs:
                 set_font(run, 12.5, bold=True, color="2E5496")
+            pPr = para._p.get_or_add_pPr()
+            pBdr = OxmlElement("w:pBdr")
+            bottom = OxmlElement("w:bottom")
+            bottom.set(qn("w:val"), "single")
+            bottom.set(qn("w:sz"), "6")
+            bottom.set(qn("w:space"), "2")
+            bottom.set(qn("w:color"), "2E5496")
+            pBdr.append(bottom)
+            pPr.append(pBdr)
             i += 1
             continue
         if line.startswith("### "):
@@ -243,9 +281,9 @@ def build() -> None:
             para = doc.add_paragraph()
             para.paragraph_format.left_indent = Cm(0.7)
             para.paragraph_format.first_line_indent = Cm(-0.7)
-            para.paragraph_format.space_after = Pt(2)
-            para.paragraph_format.line_spacing = 1.0
-            add_rich(para, line.strip(), size=8.5)
+            para.paragraph_format.space_after = Pt(1)
+            para.paragraph_format.line_spacing = 0.9
+            add_rich(para, line.strip(), size=7.6, citations=False)
             i += 1
             continue
 
@@ -289,7 +327,7 @@ def build() -> None:
             parts.append(nxt)
             j += 1
         para = doc.add_paragraph()
-        para.paragraph_format.first_line_indent = Cm(0) if parts[0].startswith("**") else Cm(0)
+        para.paragraph_format.first_line_indent = Cm(0.74)
         add_rich(para, " ".join(parts))
         i = j
 
