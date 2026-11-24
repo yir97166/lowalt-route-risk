@@ -93,7 +93,7 @@ def main() -> int:
     snap_df.to_csv(snap_path, index=False, encoding="utf-8")
 
     # 绘图
-    fig, ax = plt.subplots(figsize=(11, 8.4), dpi=160)
+    fig, ax = plt.subplots(figsize=(11, 8.4), dpi=300)
     cmap = ListedColormap(["#f4f4f4", "#d73027"])
     mesh = ax.pcolormesh(lon_e, lat_e, blocked.astype(float), cmap=cmap, vmin=0, vmax=1,
                          shading="flat")

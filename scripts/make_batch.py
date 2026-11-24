@@ -99,7 +99,7 @@ def main() -> int:
     print(f"表：{out_csv}")
 
     reach = df[df["reachable"].fillna(False)]
-    fig, ax = plt.subplots(figsize=(9.2, 5.8), dpi=170)
+    fig, ax = plt.subplots(figsize=(9.2, 5.8), dpi=300)
     for _, r in reach.iterrows():
         label = SHORT.get(r["od"], r["od"])
         ax.scatter(r["base_length_km"], r["C_lambda0"], marker="o", s=46, color="#1f77b4", zorder=3)

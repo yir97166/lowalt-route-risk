@@ -145,7 +145,7 @@ def footer_page_number(doc: Document) -> None:
     footer = doc.sections[0].footer
     para = footer.paragraphs[0]
     para.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    run = para.add_run("低空航路规划原型 · 阶段复盘（Day 1–14）· 第 ")
+    run = para.add_run("低空航路规划原型 · 阶段复盘（Day 1–15）· 第 ")
     run.font.size = Pt(8.5)
     run.font.color.rgb = RGBColor(0x80, 0x80, 0x80)
     run.font.name = CN_FONT
@@ -191,7 +191,7 @@ def build() -> Document:
 
     sub = doc.add_paragraph()
     sub.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    sr = sub.add_run("阶段复盘（Day 1–11）· 供专业人士审阅")
+    sr = sub.add_run("阶段复盘（Day 1–15）· 供专业人士审阅")
     sr.font.name = CN_FONT
     sr.font.size = Pt(13)
     sr.font.color.rgb = MID
@@ -200,8 +200,8 @@ def build() -> Document:
     meta = doc.add_paragraph()
     meta.alignment = WD_ALIGN_PARAGRAPH.CENTER
     mr = meta.add_run(
-        "弋昊阳 ｜ 2026-11-17 至 11-23 ｜ 深圳中西部 25×19 km ｜ "
-        "200 m 网格 ｜ 60 m 单层核心实验 ｜ 14 个执行日"
+        "弋昊阳 ｜ 2026-11-17 至 11-24 ｜ 深圳中西部 25×19 km ｜ "
+        "200 m 网格 ｜ 60 m 单层核心实验 ｜ 15 个执行日"
     )
     mr.font.name = CN_FONT
     mr.font.size = Pt(9.5)
@@ -226,14 +226,16 @@ def build() -> Document:
                 "与 1/(1−s) 预测一致；三组解数都是 3，遮蔽只平移阈值、不改变结论。")
     bullet(doc, "文献收口：11 条可核对文献（含 SORA 2.5 原文、地面风险与人口数据论文）；"
                 "SORA 把「遮蔽」列为缓解措施 M1，不是固定系数——我们的 0.30 只能算工程假设。")
-    bullet(doc, "工程质量：pytest 62 项通过；`scripts/run_all.py` 12 步 112.5 s 全过；"
+    bullet(doc, "工程质量：pytest 62 项通过；`scripts/run_all.py` 13 步 117.2 s 全过；"
                 "仓库已推到 GitHub（公开），全新克隆安装与输出哈希均可复核。")
 
     bullet(doc, "Day 10 批量（5 组走廊外 OD）：3 组 λ=1 出现真绕行；龙华—福田最明显——多走 8.51% 距离，"
                 "换 C −35.38%；北站、布吉只发生等长 tie-break；机场向 4 组仍判不可达。")
     bullet(doc, "Day 11 情景：高度只把 λ 阈值按 1/f 平移（0.825 → 0.950 → 1.175），路线几何不变，"
                 "不能据此说「越高越安全」；安全区尺寸 ×0.5/×1.0/×1.5 只影响机场向 OD，核心 OD 恒为 7.014 km。")
-    bullet(doc, "Day 14 真实数据：主人口数据切 WorldPop 2020（625 MB），12 步 112.5 s；"
+    bullet(doc, "Day 15 图定稿：3 张核心图统一 300 dpi；新增宽幅空域图 13_airspace_wide.png，"
+                "用米制坐标完整显示 40×20 km 净空走廊与 AOI 的重叠关系。")
+    bullet(doc, "Day 14 真实数据：主人口数据切 WorldPop 2020（625 MB），13 步 117.2 s；"
                 "最明显变化是 λ=1 从「零距离代价 tie-break」变成真绕行（+497 m，C −33%）。")
     # 1 进度
     h(doc, "1. 本周进度与计划对照")
@@ -247,14 +249,15 @@ def build() -> Document:
             ["Day 4", "11/20", "暴露加权 vs baseline", "λ=1 对比流程与指标表（真实数据结果见 §2.3）", "figures/03_route_compare.png；results/compare.csv"],
             ["Day 5", "11/20", "λ 扫描 + Pareto", "λ 0.025 步长扫描、去重、Pareto 图（见 §2.4）", "figures/05_pareto.png；results/pareto.csv"],
             ["Day 6", "11/20", "网格分辨率敏感性", "100/200/400 m 重建网格与对照（见 §2.5）", "figures/06_resolution.png；results/resolution.csv"],
-            ["Day 7", "11/21", "周复盘 + README v0.1", "一键脚本（现 12 步）；README v0.1；仓库公开推送成功", "scripts/run_all.py；README.md；GitHub"],
+            ["Day 7", "11/21", "周复盘 + README v0.1", "一键脚本（现 13 步）；README v0.1；仓库公开推送成功", "scripts/run_all.py；README.md；GitHub"],
             ["Day 8", "11/21", "文献 + 遮蔽参数敏感性", "11 条文献（含 SORA 2.5）；遮蔽敏感性（见 §2.6）", "docs/literature.md；figures/07_param_sensitivity.png"],
             ["Day 9", "11/22", "测试补全（风险/图/掩膜/路线）", "pytest 45→52（Day 14 后 62 项）", "tests/；pytest -q"],
             ["Day 10", "11/22（提前）", "5 组走廊外 OD 批量实验", "5 组全部可达；批量结果见 §2.7", "figures/10_batch_od.png；results/od_summary.csv"],
             ["Day 11", "11/23（提前）", "高度层与安全区尺寸情景", "高度阈值 0.825/0.950/1.175；安全区 ×0.5/1.0/1.5 覆盖 9.3%/39.7%/60.7%", "figures/11_altitude_scenario.png；12_safety_area_scenario.png"],
             ["Day 12", "11/23（提前）", "CLI、配置与代码整理", "`python -m src.cli all` 一条命令复现；CLI 6 项测试", "src/cli.py；tests/test_cli.py"],
             ["Day 13", "11/23（提前）", "随机种子、日志、异常处理", "logs/ 逐步 JSON；种子进 config；失败即停", "src/runlog.py；logs/latest.json"],
-            ["Day 14", "11/23", "主人口数据切真实 WorldPop", "625 MB 栅格校验通过；12 步 112.5 s；λ=1 真绕行 +7.09%/−33.05%", "data/raw/worldpop/；results/compare.csv"],
+            ["Day 14", "11/23", "主人口数据切真实 WorldPop", "625 MB 栅格校验通过；13 步 117.2 s；λ=1 真绕行 +7.09%/−33.05%", "data/raw/worldpop/；results/compare.csv"],
+    ["Day 15", "11/24", "3 张核心图定稿 + 宽幅空域图", "核心图统一 300 dpi；新增 13_airspace_wide.png（完整净空走廊 40×20 km）", "figures/00/03/05/13；scripts/make_airspace_wide.py"],
         ],
         widths=[1.4, 1.4, 3.2, 7.4, 3.6],
     )
@@ -416,7 +419,7 @@ def build() -> Document:
             ["11", "主数据用 WorldPop 2020，合成仅作离线 fallback", "Day 14 下载并校验 625 MB 栅格；真实数据让 λ=1 变成真绕行"],
             ["12", "文献引用必须可核对（DOI/文号/原文页），不引二手转述", "11 条全部核对过"],
             ["13", "遮蔽系数 0.30 只作工程假设，另做 0.2/0.3/0.4 敏感性", "SORA 中遮蔽是缓解措施 M1，不是固定系数"],
-            ["14", "仓库公开、README v0.3、一键 12 步脚本", "新克隆 10 分钟内跑通是验收标准之一"],
+            ["14", "仓库公开、README v0.3、一键 13 步脚本", "新克隆 10 分钟内跑通是验收标准之一"],
             ["15", "测试补到 62 项（risk/grid/mask/router/metrics/graph/config/情景/CLI/日志）", "审核要求覆盖 4 类核心逻辑，实际多补 5 类"],
         ],
         widths=[1.0, 7.4, 8.6],
@@ -431,7 +434,7 @@ def build() -> Document:
         [
             ["提交记录", "从 2b266ed（Day 1）到当前 HEAD；main 与 origin/main 一致"],
             ["测试", "pytest 62 项通过：mask 11、graph 5、router 6、metrics 6、risk 9、grid 8、config 4、情景 3、CLI 6、日志 4"],
-            ["一键复现", "scripts/run_all.py 12 步全过，实测 112.5 s"],
+            ["一键复现", "scripts/run_all.py 13 步全过，实测 117.2 s"],
             ["公开仓库", "https://github.com/yir97166/lowalt-route-risk（Public，SSH over 443）"],
             ["全新克隆", "安装约 2 分钟 + 脚本全过，退出码 0，pip check 干净"],
             ["可复现", "合成数据路径已逐字节验证；真实数据重跑由脚本重生成，无随机步骤"],
@@ -463,15 +466,15 @@ def build() -> Document:
     )
 
     # 6 下周
-    h(doc, "6. 下阶段计划（Day 15–18）")
+    h(doc, "6. 下阶段计划（Day 16–19）")
     table(
         doc,
         ["天", "任务", "产出 / 验收"],
         [
-            ["Day 15", "中期复盘、3 张核心图定稿", "报告方法与结果初稿"],
-            ["Day 16", "中文技术报告初稿（6–8 页）", "report/report_zh.md"],
+            ["Day 16", "中文技术报告初稿（6–8 页）", "report/report_zh.md 完成稿"],
             ["Day 17", "英文摘要 + 图表定稿", "report/abstract_en.md"],
-            ["Day 18", "3 分钟英文视频", "report/demo.mp4"],
+            ["Day 18", "新克隆测试、依赖/路径修复", "10 分钟内跑通"],
+            ["Day 19", "3 分钟英文视频", "report/demo.mp4"],
         ],
         widths=[1.6, 9.0, 6.2],
     )
@@ -498,7 +501,7 @@ def build() -> Document:
     p(doc, "公开仓库：https://github.com/yir97166/lowalt-route-risk")
     p(doc, "包内材料：01_原始资料（通告 + 4 张航图）、02_专家审核（意见、审核包 v1.2、本周报）、"
            "03_图与结果_20261122（全部图与核心 CSV）。仓库内另见 docs/literature.md、docs/decisions.md。", size=9)
-    p(doc, "复现：`.\\venv\\Scripts\\python.exe scripts\\run_all.py`（12 步，约 112.5 s）；"
+    p(doc, "复现：`.\\venv\\Scripts\\python.exe scripts\\run_all.py`（13 步，约 117.2 s）；"
            "`-m pytest -q`（62 passed）。验收口径：一键从零全过、测试全绿、CSV/PNG 由脚本重生成；"
            "所有数字以仓库 results/ 与 figures/ 为准，本报告不手改数字。", size=9.5)
     p(doc, "免责声明：本项目为方法演示与能力证明；人口数据为 WorldPop 2020 建模估计、禁飞区为示意或公开资料近似，"

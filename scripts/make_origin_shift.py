@@ -174,7 +174,7 @@ def main() -> int:
     df_sum.to_csv(cfg0.resolve(args.out_summary), index=False, encoding="utf-8")
 
     # ---- 图：Δ长度 vs ΔC ----
-    fig, axes = plt.subplots(1, len(panels), figsize=(4.9 * len(panels), 4.6), dpi=160,
+    fig, axes = plt.subplots(1, len(panels), figsize=(4.9 * len(panels), 4.6), dpi=300,
                              squeeze=False)
     for ax, panel in zip(axes[0], panels):
         df = panel["df"]

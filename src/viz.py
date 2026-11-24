@@ -51,7 +51,7 @@ def plot_route(
     minx, miny, maxx, maxy = cfg.bbox
     lat_mid = float(np.mean(lat_e))
 
-    fig, ax = plt.subplots(figsize=(11, 8.2), dpi=160)
+    fig, ax = plt.subplots(figsize=(11, 8.2), dpi=300)
     mesh = ax.pcolormesh(lon_e, lat_e, shown, cmap="magma", shading="flat")
     cbar = fig.colorbar(mesh, ax=ax, shrink=0.82, pad=0.02)
     cbar.set_label("人口（每 200 m 格，log10 显示）", fontsize=10)
@@ -136,7 +136,7 @@ def plot_route_compare(
     minx, miny, maxx, maxy = cfg.bbox
     lat_mid = float(np.mean(lat_e))
 
-    fig, ax = plt.subplots(figsize=(11, 8.2), dpi=160)
+    fig, ax = plt.subplots(figsize=(11, 8.2), dpi=300)
     mesh = ax.pcolormesh(lon_e, lat_e, shown, cmap="magma", shading="flat")
     cbar = fig.colorbar(mesh, ax=ax, shrink=0.82, pad=0.02)
     cbar.set_label("人口（每 200 m 格，log10 显示）", fontsize=10)
@@ -227,7 +227,7 @@ def plot_population_map(
     shown = np.log10(pop + 1.0)
     lat_mid = float(np.mean(lat_e))
 
-    fig, ax = plt.subplots(figsize=(11, 8.2), dpi=160)
+    fig, ax = plt.subplots(figsize=(11, 8.2), dpi=300)
     mesh = ax.pcolormesh(lon_e, lat_e, shown, cmap="magma", shading="flat")
     cbar = fig.colorbar(mesh, ax=ax, shrink=0.82, pad=0.02)
     cbar.set_label("人口（每 200 m 格，log10 显示）", fontsize=10)

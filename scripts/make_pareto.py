@@ -148,7 +148,7 @@ def main() -> int:
     df_front.to_csv(cfg.resolve(args.out_front), index=False, encoding="utf-8")
 
     # ---- 图 ----
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14.5, 6.6), dpi=160,
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14.5, 6.6), dpi=300,
                                    gridspec_kw={"width_ratios": [1.15, 1.0]})
     core = df[df["od"] == cfg.od_pairs[0].name].sort_values("lambda")
     sc = ax1.scatter(core["length_km"], core["exposure_km"], c=core["lambda"],

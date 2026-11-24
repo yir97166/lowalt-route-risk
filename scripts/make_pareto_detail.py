@@ -198,7 +198,7 @@ def main() -> int:
     lon_e, lat_e = edges_to_lonlat(grid, cfg.crs_input)
     minx, miny, maxx, maxy = cfg.bbox
 
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14.6, 6.4), dpi=160,
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14.6, 6.4), dpi=300,
                                    gridspec_kw={"width_ratios": [1.05, 1.0]})
     mesh = ax1.pcolormesh(lon_e, lat_e, np.log10(pop + 1.0), cmap="magma", shading="flat")
     mesh.set_clip_path(MplPolygon([(minx, miny), (maxx, miny), (maxx, maxy), (minx, maxy)],

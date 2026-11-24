@@ -40,6 +40,7 @@ STEPS: list[tuple[str, list[str]]] = [
     ("网格分辨率敏感性", ["scripts/make_resolution.py"]),
     ("遮蔽参数敏感性（s=0.2/0.3/0.4）", ["scripts/make_param_sensitivity.py"]),
     ("高度层 / 安全区尺寸情景敏感性", ["scripts/make_scenarios.py"]),
+    ("宽幅空域图（完整净空走廊）", ["scripts/make_airspace_wide.py"]),
 ]
 
 

@@ -261,7 +261,7 @@ def fig_altitude(summary: pd.DataFrame, detail: pd.DataFrame, out: Path) -> None
     ax2.grid(axis="x", alpha=0.25)
 
     fig.suptitle("高度层情景敏感性（60 m 为基准；只作情景，不构成安全结论）", fontsize=12)
-    fig.savefig(out, dpi=200)
+    fig.savefig(out, dpi=300)
     plt.close(fig)
 
 
@@ -315,7 +315,7 @@ def fig_buffer(cfg, grid, df: pd.DataFrame, out: Path) -> None:
     ax2.grid(axis="y", alpha=0.25)
 
     fig.suptitle("机场净空安全区尺寸敏感性（核心 OD 罗湖—福田不受影响）", fontsize=12)
-    fig.savefig(out, dpi=200)
+    fig.savefig(out, dpi=300)
     plt.close(fig)
 
 

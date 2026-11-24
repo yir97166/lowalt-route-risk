@@ -149,7 +149,7 @@ def main() -> int:
 
     # ---- 并排图 ----
     n = len(panels)
-    fig, axes = plt.subplots(1, n, figsize=(5.2 * n, 5.4), dpi=160, squeeze=False)
+    fig, axes = plt.subplots(1, n, figsize=(5.2 * n, 5.4), dpi=300, squeeze=False)
     to_geo = Transformer.from_crs(cfg0.crs_metric, cfg0.crs_input, always_xy=True)
     minx, miny, maxx, maxy = cfg0.bbox
     last_ax = None

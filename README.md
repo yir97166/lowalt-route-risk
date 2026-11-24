@@ -25,7 +25,7 @@
 | λ 扫描 | 81 档 λ（步长 0.025）→ 3 个不同解、2 个切换点（0.025 / 0.825）；长度 7.014–7.511 km，C 2,625.9–3,922.2 | `results/pareto_routes.csv` |
 | 分辨率敏感性 | 100 / 200 / 400 m：长度 +5.8% / +7.1% / 0.0%；沿路人口密度 −40.8% / −38.8% / −12.6% | `results/resolution.csv` |
 | 吸附偏移敏感性 | 起终点整体平移 ±0.5 格：C 最大变动 100 m ±1.6% / 200 m ±3.6% / 400 m ±20.8% | `results/origin_shift_summary.csv` |
-| 工程验证 | pytest **62 项**；12 步一键流程 112.5 s；真实数据可复跑 | 见下 |
+| 工程验证 | pytest **62 项**；13 步一键流程 117.2 s；真实数据可复跑 | 见下 |
 
 > 人口为 **WorldPop 2020 中国 100 m 约束版**（Day 14 起主数据；`data/raw/worldpop/chn_ppp_2020_UNadj_constrained.tif`）。
 > WorldPop 是建模估计而非普查，绝对数字仍有不确定性；结论只做相对比较，不代表真实风险。
@@ -46,7 +46,7 @@ python -m venv .venv
 .\.venv\Scripts\python.exe -m src.cli all --dry-run
 ```
 
-实测：安装约 2 分钟，全流程 12 步 **112.5 s**，产出 `figures/00–12`、`results/*.csv`、`data/processed/*`。
+实测：安装约 2 分钟，全流程 13 步 **117.2 s**，产出 `figures/00–13`、`results/*.csv`、`data/processed/*`。
 单独重跑某一步时，脚本彼此独立，见 `scripts/`。
 
 真实数据：`configs/aoi.yaml` 的 `data.population_tif` 指向 `data/raw/worldpop/chn_ppp_2020_UNadj_constrained.tif`；
@@ -82,7 +82,7 @@ lowalt-route-risk/
 ├─ scripts/                # 数据生成、各实验结果、run_all.py 一键复现
 ├─ tests/                  # mask / graph / router / risk / grid / metrics / cli，共 58 项
 ├─ docs/                   # 设计、假设、决策、数据来源、日志、周报说明
-├─ figures/                # 00–12 核心图、批量图与敏感性图
+├─ figures/                # 00–13 核心图、批量图、敏感性图与宽幅空域图
 ├─ results/                # baseline / compare / pareto / resolution / 参数敏感性 CSV
 ├─ data/raw|processed/     # 原始数据（不入库）与处理结果
 └─ report/                 # 报告与视频（后续）
@@ -194,6 +194,18 @@ lowalt-route-risk/
 > 注：以上 Day 1–13 记录保留当时的**合成数据**口径；Day 14 起主数据切为真实 WorldPop，
 > 最新数字见顶部「核心结果」与 Day 14 记录。历史数字不再逐个回改，避免伪造实验记录。
 
+## Day 15：3 张核心图定稿 + 宽幅空域图（2026-11-24）
+
+- 3 张核心图统一 300 dpi：`00_population.png`（3300×2460）、`03_route_compare.png`（3300×2460）、
+  `05_pareto.png`（4350×1980）；批量/敏感性图也一并升到 300 dpi，报告可直接排版。
+- 新增 `figures/13_airspace_wide.png`：用 EPSG:32649 米制坐标、横纵等比例，完整显示
+  机场净空安全区走廊（40 km × 20 km）与 AOI 的位置关系；把 AOI 内受净空约束的部分
+  （37.5%）加深标出，避免「AOI 里只看到一小段机场边界」的误读。
+- `scripts/make_airspace_wide.py` 加入 `run_all.py`（第 13 步）；实测 13 步 **117.2 s**。
+- 中期复核：λ=1 仍为 7.511 km（+7.09%）/ C 2,625.9（−33.05%）；Pareto 3 解 2 切换点
+  （0.025 / 0.825）；批量 5 组、测试 62 项均未变。
+- `report/report_zh.md` 建立 6–8 页报告骨架，方法与结果两节已填初稿，待 Day 16 补全。
+
 ## Day 14：主数据切换为真实 WorldPop（2026-11-23）
 
 - 下载并校验 `data/raw/worldpop/chn_ppp_2020_UNadj_constrained.tif`：
@@ -201,7 +213,7 @@ lowalt-route-risk/
   来源 WorldPop 2020 中国约束版（100 m），许可 CC BY 4.0，引用 Tatem 2017 Sci Data。
 - `configs/aoi.yaml` 的 `data.population_tif` 已指向该文件；合成数据仅保留为离线 fallback
   （`--synthetic` 与 `data/synthetic_population.tif`）。
-- 重跑 `python -m src.cli all`：12 步 112.5 s，图 00–12 与 `results/*.csv` 全部按真实数据重生成。
+- 重跑 `python -m src.cli all`：13 步 117.2 s，图 00–13 与 `results/*.csv` 全部按真实数据重生成。
 - 关键数字变化（合成 → 真实）：
 
 | 指标 | 合成数据 | WorldPop 2020 |
@@ -233,7 +245,8 @@ lowalt-route-risk/
 - [x] Day 12：CLI、配置与代码整理（2026-11-23 提前）
 - [x] Day 13：日志、随机种子、异常处理（2026-11-23 提前）
 - [x] Day 14：主数据切换为真实 WorldPop（2026-11-23）
-- [ ] Day 14–21：3 张核心图、6–8 页报告、英文摘要、3 分钟视频、发布
+- [x] Day 15：3 张核心图定稿（300 dpi）+ 宽幅空域图（2026-11-24）
+- [ ] Day 16–21：6–8 页报告、英文摘要、3 分钟视频、发布
 
 ## 引用
 
