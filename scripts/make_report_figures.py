@@ -191,23 +191,34 @@ def fig_pareto():
     df = pd.read_csv(ROOT / "results" / "pareto_routes.csv")
     df = df[df["od"] == "luohu_to_futian"].reset_index(drop=True)
     fig, ax = plt.subplots(figsize=(6.5, 3.4))
-    ax.scatter(df["length_km"], df["c_proxy_m"], s=70, color=BLUE, zorder=3)
+
+    colors = ["#1f4e79", "#2a9d8f", "#e76f51"]
+    names = ["λ=0：纯距离", "λ=0.025–0.80：等长低暴露", "λ=0.825–2.0：真绕行"]
     labels = [
-        "λ=0：纯距离最优\n7.014 km，C=3,922",
-        "λ=0.025–0.80：等长低暴露\n7.014 km，C=3,242（−17.4%）",
-        "λ=0.825–2.0：真绕行\n7.511 km，C=2,626（−33.1%）",
+        "7.014 km，C=3,922",
+        "7.014 km，C=3,242（−17.4%）",
+        "7.511 km，C=2,626（−33.1%）",
     ]
-    text_pos = [(7.045, 3890), (7.045, 3320), (7.10, 2705)]
-    for (_, r), lab, pos in zip(df.iterrows(), labels, text_pos):
+    for i, (_, r) in enumerate(df.iterrows()):
+        ax.scatter(r["length_km"], r["c_proxy_m"], s=95, color=colors[i],
+                   edgecolors="white", linewidths=1.0, zorder=3, label=names[i])
+    ax.legend(loc="upper right", fontsize=7.5, frameon=True, framealpha=0.92)
+
+    text_pos = [(7.055, 3900), (7.055, 3320), (7.20, 2570)]
+    for i, ((_, r), lab, pos) in enumerate(zip(df.iterrows(), labels, text_pos)):
         ax.annotate(lab, xy=(r["length_km"], r["c_proxy_m"]), xytext=pos,
-                    fontsize=7.8, va="top", ha="left",
-                    arrowprops=dict(arrowstyle="-", color=GREY, lw=0.8,
-                                    shrinkA=2, shrinkB=4))
+                    fontsize=7.8, va="top", ha="left", color=colors[i],
+                    arrowprops=dict(arrowstyle="-", color=colors[i], lw=0.8,
+                                    shrinkA=2, shrinkB=5))
+
+    ax.text(7.18, 3000, "解 2 → 解 3：+7.09% 距离，C −19.0%（相对解 2）",
+            fontsize=7.2, color="#666666")
+
     ax.set_xlabel("路线长度 (km)")
     ax.set_ylabel("累计暴露 C（代理·米）")
     ax.set_title("核心 OD 的 3 个解：等长 tie-break 与真绕行", fontsize=9)
     ax.set_xlim(6.98, 7.62)
-    ax.set_ylim(2520, 4000)
+    ax.set_ylim(2490, 4000)
     ax.grid(alpha=0.3, lw=0.5)
     fig.tight_layout()
     fig.savefig(OUT / "fig4_pareto.png", bbox_inches="tight")
