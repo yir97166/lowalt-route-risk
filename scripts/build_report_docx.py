@@ -20,14 +20,16 @@ ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "report" / "report_zh.md"
 OUT = ROOT / "report" / "低空航路规划原型-技术报告-v1.0.docx"
 
-CN_FONT = "微软雅黑"
+CN_FONT = "宋体"
+HEAD_FONT = "黑体"
+EN_FONT = "Times New Roman"
 MONO_FONT = "Consolas"
 
 
 def set_font(style_or_run, size: float | None = None, bold: bool | None = None,
-             color: str | None = None, mono: bool = False) -> None:
+             color: str | None = None, mono: bool = False, head: bool = False) -> None:
     font = style_or_run.font
-    font.name = MONO_FONT if mono else CN_FONT
+    font.name = MONO_FONT if mono else EN_FONT
     if size is not None:
         font.size = Pt(size)
     if bold is not None:
@@ -40,7 +42,10 @@ def set_font(style_or_run, size: float | None = None, bold: bool | None = None,
     if rfonts is None:
         rfonts = OxmlElement("w:rFonts")
         rpr.append(rfonts)
-    rfonts.set(qn("w:eastAsia"), CN_FONT if not mono else MONO_FONT)
+    rfonts.set(qn("w:eastAsia"), (HEAD_FONT if head else CN_FONT) if not mono else MONO_FONT)
+    if not mono:
+        rfonts.set(qn("w:ascii"), EN_FONT)
+        rfonts.set(qn("w:hAnsi"), EN_FONT)
 
 
 def shade(cell, hex_color: str) -> None:
@@ -84,6 +89,7 @@ FIG_MAP = {
 
 
 def add_rich(paragraph, text: str, size: float = 10.5, citations: bool = True) -> None:
+    text = text.replace("\\*", "*").replace("\\_", "_")
     for piece in INLINE.split(text):
         if not piece:
             continue
@@ -102,7 +108,7 @@ def add_rich(paragraph, text: str, size: float = 10.5, citations: bool = True) -
                 if not seg:
                     continue
                 if CITE.fullmatch(seg):
-                    run = paragraph.add_run(seg[1:-1])
+                    run = paragraph.add_run(seg)
                     set_font(run, size - 1.5)
                     run.font.superscript = True
                 else:
@@ -110,40 +116,78 @@ def add_rich(paragraph, text: str, size: float = 10.5, citations: bool = True) -
                     set_font(run, size)
 
 
+def join_smart(parts: list[str]) -> str:
+    out = parts[0]
+    for nxt in parts[1:]:
+        a, b = out[-1], nxt[0]
+        if ("\u4e00" <= a <= "\u9fff") or ("\u4e00" <= b <= "\u9fff") \
+                or a in "，。；：、）」』" or b in "，。；：、（（":
+            out += nxt
+        else:
+            out += " " + nxt
+    return out
+
+
 def add_table(doc, rows: list[list[str]]) -> None:
     cols = len(rows[0])
     table = doc.add_table(rows=len(rows), cols=cols)
     table.alignment = WD_TABLE_ALIGNMENT.CENTER
-    table.style = "Table Grid"
     table.autofit = True
     tblPr = table._tbl.tblPr
     layout = OxmlElement("w:tblLayout")
     layout.set(qn("w:type"), "autofit")
     tblPr.append(layout)
+
+    # GB/T 三线表：上下粗线 + 表头下细线，无竖线
+    borders = OxmlElement("w:tblBorders")
+    for edge, sz, color in (("top", "12", "000000"), ("bottom", "12", "000000"),
+                            ("insideH", "0", "FFFFFF"), ("insideV", "0", "FFFFFF"),
+                            ("left", "0", "FFFFFF"), ("right", "0", "FFFFFF")):
+        el = OxmlElement(f"w:{edge}")
+        el.set(qn("w:val"), "single" if sz != "0" else "nil")
+        el.set(qn("w:sz"), sz)
+        el.set(qn("w:color"), color)
+        borders.append(el)
+    tblPr.append(borders)
+
     for r, row in enumerate(rows):
         for c, cell_text in enumerate(row):
             cell = table.cell(r, c)
-            cell.paragraphs[0].text = ""
             para = cell.paragraphs[0]
             para.paragraph_format.space_before = Pt(2)
             para.paragraph_format.space_after = Pt(2)
             para.paragraph_format.line_spacing = 1.0
             add_rich(para, cell_text.strip(), size=9, citations=False)
             if r == 0:
-                shade(cell, "1F3864")
                 for run in para.runs:
                     run.font.bold = True
-                    run.font.color.rgb = RGBColor(0xFF, 0xFF, 0xFF)
-            elif r % 2 == 0:
-                shade(cell, "F4F7FB")
-    tbl_borders = OxmlElement("w:tblBorders")
-    for edge in ("top", "left", "bottom", "right", "insideH", "insideV"):
-        el = OxmlElement(f"w:{edge}")
-        el.set(qn("w:val"), "single")
-        el.set(qn("w:sz"), "4")
-        el.set(qn("w:color"), "C9D2E3")
-        tbl_borders.append(el)
-    tblPr.append(tbl_borders)
+                tcPr = cell._tc.get_or_add_tcPr()
+                tcBorders = OxmlElement("w:tcBorders")
+                bottom = OxmlElement("w:bottom")
+                bottom.set(qn("w:val"), "single")
+                bottom.set(qn("w:sz"), "8")
+                bottom.set(qn("w:color"), "000000")
+                tcBorders.append(bottom)
+                tcPr.append(tcBorders)
+
+    # 按内容长度分配列宽（总宽 17 cm）
+    weights = []
+    for c in range(cols):
+        longest = max(len(str(row[c])) for row in rows)
+        weights.append(min(max(longest, 6), 34))
+    total = sum(weights)
+    for c, cell in enumerate(table.columns[0].cells):
+        pass
+    for c in range(cols):
+        w = Cm(17.0 * weights[c] / total)
+        for r in range(len(rows)):
+            table.cell(r, c).width = w
+
+    # 表头跨页重复、行不拆分
+    trPr = table.rows[0]._tr.get_or_add_trPr()
+    trPr.append(OxmlElement("w:tblHeader"))
+    for row in table.rows:
+        row._tr.get_or_add_trPr().append(OxmlElement("w:cantSplit"))
 
 
 def add_image(doc, path: Path, caption: str) -> None:
@@ -154,17 +198,56 @@ def add_image(doc, path: Path, caption: str) -> None:
     pic_para.alignment = WD_ALIGN_PARAGRAPH.CENTER
     pic_para.paragraph_format.space_before = Pt(6)
     pic_para.paragraph_format.space_after = Pt(2)
-    pic_para.add_run().add_picture(str(path), width=Cm(14.2))
+    if "fig1" in path.name:
+        width = Cm(14.8)
+    elif "fig3" in path.name:
+        width = Cm(10.2)
+    else:
+        width = Cm(13.5)
+    pic_para.add_run().add_picture(str(path), width=width)
     pic_para.paragraph_format.keep_with_next = True
     cap = doc.add_paragraph()
     cap.alignment = WD_ALIGN_PARAGRAPH.CENTER
     cap.paragraph_format.space_after = Pt(8)
     run = cap.add_run(caption)
-    set_font(run, 9, color="595959")
+    set_font(run, 8.5, color="404040")
 
 
 def build() -> None:
-    lines = SRC.read_text(encoding="utf-8").splitlines()
+    raw_lines = SRC.read_text(encoding="utf-8").splitlines()
+    lines: list[str] = []
+    in_code = False
+    in_ref = False
+    for raw in raw_lines:
+        if raw.startswith("```"):
+            in_code = not in_code
+            lines.append(raw)
+            continue
+        if in_code:
+            lines.append(raw)
+            continue
+        # 参考文献续行合并
+        if raw.startswith("["):
+            in_ref = True
+            lines.append(raw.rstrip())
+            continue
+        if in_ref:
+            if not raw.strip():
+                in_ref = False
+                lines.append("")
+                continue
+            if raw.lstrip().startswith("#"):
+                in_ref = False
+                lines.append(raw)
+                continue
+            lines[-1] = (lines[-1] + " " + raw.strip()).strip()
+            continue
+        # 列表续行合并
+        if raw.startswith("  ") and lines and not re.match(r"^\s*\d+\.\s", raw):
+            if lines[-1].lstrip().startswith("- "):
+                lines[-1] = (lines[-1].rstrip() + raw.strip())
+                continue
+        lines.append(raw.rstrip())
 
     doc = Document()
     section = doc.sections[0]
@@ -177,15 +260,16 @@ def build() -> None:
 
     styles = doc.styles
     normal = styles["Normal"]
-    set_font(normal, 10.5)
-    normal.paragraph_format.line_spacing = 1.25
-    normal.paragraph_format.space_after = Pt(6)
+    set_font(normal, 11)
+    normal.paragraph_format.line_spacing = 1.42
+    normal.paragraph_format.space_after = Pt(3)
+    normal.paragraph_format.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
 
-    for name, size, color in (("Heading 1", 15, "1F3864"),
-                              ("Heading 2", 12.5, "2E5496"),
-                              ("Heading 3", 11, "2E5496")):
+    for name, size, color in (("Heading 1", 20, "1A1A1A"),
+                              ("Heading 2", 13, "1A1A1A"),
+                              ("Heading 3", 11.5, "1A1A1A")):
         st = styles[name]
-        set_font(st, size, bold=True, color=color)
+        set_font(st, size, bold=True, color=color, head=True)
         st.paragraph_format.space_before = Pt(10 if name == "Heading 1" else 7)
         st.paragraph_format.space_after = Pt(4)
         st.paragraph_format.keep_with_next = True
@@ -211,6 +295,8 @@ def build() -> None:
                 para.paragraph_format.left_indent = Cm(0.3)
                 para.paragraph_format.space_before = Pt(2)
                 para.paragraph_format.space_after = Pt(8)
+                para.alignment = WD_ALIGN_PARAGRAPH.LEFT
+                para.paragraph_format.line_spacing = 1.0
                 run = para.add_run("\n".join(code_lines))
                 set_font(run, 9, mono=True)
             i += 1
@@ -228,29 +314,20 @@ def build() -> None:
             para = doc.add_paragraph(line[2:].strip(), style="Heading 1")
             para.alignment = WD_ALIGN_PARAGRAPH.CENTER if first_h1 else WD_ALIGN_PARAGRAPH.LEFT
             for run in para.runs:
-                set_font(run, 15, bold=True, color="1F3864")
+                set_font(run, 17, bold=True, color="1A1A1A", head=True)
             first_h1 = False
             i += 1
             continue
         if line.startswith("## "):
             para = doc.add_paragraph(line[3:].strip(), style="Heading 2")
             for run in para.runs:
-                set_font(run, 12.5, bold=True, color="2E5496")
-            pPr = para._p.get_or_add_pPr()
-            pBdr = OxmlElement("w:pBdr")
-            bottom = OxmlElement("w:bottom")
-            bottom.set(qn("w:val"), "single")
-            bottom.set(qn("w:sz"), "6")
-            bottom.set(qn("w:space"), "2")
-            bottom.set(qn("w:color"), "2E5496")
-            pBdr.append(bottom)
-            pPr.append(pBdr)
+                set_font(run, 13, bold=True, color="1A1A1A", head=True)
             i += 1
             continue
         if line.startswith("### "):
             para = doc.add_paragraph(line[4:].strip(), style="Heading 3")
             for run in para.runs:
-                set_font(run, 11, bold=True, color="2E5496")
+                set_font(run, 11.5, bold=True, color="1A1A1A", head=True)
             i += 1
             continue
 
@@ -273,7 +350,7 @@ def build() -> None:
             note = doc.add_paragraph()
             note.paragraph_format.space_after = Pt(8)
             run = note.add_run(" ".join(x for x in note_lines if x))
-            set_font(run, 9, color="595959")
+            set_font(run, 8.5, color="404040")
             continue
 
         # 参考文献（悬挂缩进、小字号）
@@ -283,7 +360,7 @@ def build() -> None:
             para.paragraph_format.first_line_indent = Cm(-0.7)
             para.paragraph_format.space_after = Pt(1)
             para.paragraph_format.line_spacing = 0.9
-            add_rich(para, line.strip(), size=7.6, citations=False)
+            add_rich(para, line.strip(), size=8.8, citations=False)
             i += 1
             continue
 
@@ -328,7 +405,7 @@ def build() -> None:
             j += 1
         para = doc.add_paragraph()
         para.paragraph_format.first_line_indent = Cm(0.74)
-        add_rich(para, " ".join(parts))
+        add_rich(para, join_smart(parts))
         i = j
 
     OUT.parent.mkdir(parents=True, exist_ok=True)
