@@ -39,6 +39,8 @@
 结果对网格分辨率、起点偏移与遮蔽系数做了敏感性检查；机场周边起降点落在净空安全区内，
 按硬约束判「不可达」，这本身是本文的一个结论：净空区内不宜设起降点。
 
+**关键词**：低空航路；人口暴露代理；距离—暴露权衡；Pareto 前沿；深圳
+
 ## 1. 问题与边界
 
 - **研究问题**：在给定人口暴露代理与硬空域约束下，绕行多少距离能换来多少暴露下降？
@@ -47,6 +49,38 @@
 - **不做**：适航/SORA 定量评估、失效概率与伤亡换算、动态空域、气象、通信干扰、多机协同。
 - **术语**：统一用「人口暴露代理值」「累计暴露 C（代理·米）」「平均暴露强度 E=C/L」，
   不使用「风险」「安全」做结论性表述。
+
+### 1.1 相关工作
+
+地面风险模型通常拆成「暴露人口 × 撞击概率 × 致死率」三部分 [3]。早期工作已经把
+「飞行器在飞失效 → 地面人口」作为评估对象 [8]；Primatesta 等把地面风险做成栅格
+地图并在图上规划 [2]；la Cour-Harbo 进一步指出，真正的伤亡概率需要机体质量、下降
+速度与撞击能量 [4]。本文只取其中的**暴露人口**一项，并把「缓冲区尺寸本身有不确定性」
+[5] 作为不建缓冲区的理由之一。
+
+城市低空物流方向，Li 等用栅格化网络做末端配送航线规划 [6]，Feng 等在风险环境下
+联合考虑路径与运行容量 [7]。与这些工作相比，本文不做网络级容量、多机协同或动态
+空域，只回答一个更窄的问题：在固定硬约束下，距离与暴露如何互换。
+
+标准与制度侧，JARUS SORA 2.5（草案）用 iGRC 分档把「最大人口密度 × 无人机尺寸/速度」
+映射到地面风险等级，并将遮蔽列为缓解措施 M1(A) [1]；国内《无人驾驶航空器飞行管理
+暂行条例》给出 120 m 真高与飞行申请的制度背景 [11]；深圳宝安机场净空范围取自
+深公规〔2017〕3 号 [10]；人口数据引 WorldPop [9]。本文只把这些当作边界条件与参照，
+不做合规判断。
+
+### 1.2 与 SORA 的关系（明确划界）
+
+| SORA 概念 | 本文做法 | 差距 |
+|---|---|---|
+| iGRC 分档（1–11） | 连续暴露值 e∈[0,1] | 不分档，也不映射到 GRC |
+| 最大人口密度 | p95 归一化后的格值 | 用 p95 截断，不是分档上限 |
+| ground risk buffer | 无 | 只有硬禁飞几何 |
+| sheltering 缓解 | 常数 0.30 | 本文当模型系数，SORA 当缓解措施 |
+| 1E-6 致死目标 | 无 | 不计算事故率，无法对照 |
+
+因此本文只能称为「人口暴露代理 + 路径权衡」，**不是 SORA 评估**，也不输出 SAIL 或
+任何合规结论。
+
 
 ## 2. 数据
 
@@ -118,10 +152,35 @@ E(R)       = C(R) / L(R)                     # 无量纲
 
 ### 4.3 图
 
-- `figures/00_population.png`：人口暴露热力图（WorldPop，200 m 网格）
-- `figures/03_route_compare.png`：最短 vs 低暴露（核心 OD）
-- `figures/05_pareto.png`：λ 扫描与 Pareto 前沿
-- `figures/13_airspace_wide.png`：宽幅空域约束总览（完整净空走廊与 AOI 关系）
+![图 1　空域约束总览：完整净空走廊（40×20 km）、AOI 边界与重叠区（37.5%）](figures/13_airspace_wide.png)
+
+![图 2　人口暴露热力图（WorldPop 2020，200 m 网格，log10 显示）](figures/00_population.png)
+
+![图 3　核心 OD：最短可行路线（λ=0，青）与低暴露路线（λ=1，品红）](figures/03_route_compare.png)
+
+![图 4　λ 扫描与 Pareto 前沿（左：核心 OD；右：批量 OD 的长度—暴露移动）](figures/05_pareto.png)
+
+### 4.4 与外部方法/基线的关系
+
+本文的对照是**同一张图上的最短路（λ=0）**，属于「内部基线」：它回答「加入暴露项后
+路线是否变化、代价多少」，但不回答「换一个风险模型会不会得到不同路线」。
+
+- **A\*/RRT\* 与 Dijkstra 的关系**：在固定网格、非负边权、同一启发式可采纳时，A\*
+  与 Dijkstra 得到的最优路径相同，差别在搜索效率；RRT\* 是采样式渐近最优，网格足够
+  密时趋近同一解。因此把它们当作「更强的对比方法」在方法上并不成立，本文没有为了
+  凑对比而实现它们。
+- **真正需要的外部基线是「换风险模型」**：例如用 SORA 的 iGRC 分档替换连续暴露 e，
+  或用「沿路平均人口密度」替换「累计暴露 C」，看路线选择与排序是否稳定。这类对比
+  需要额外的分档映射与参数假设，本文只给出可执行设计，不伪称已完成：
+
+  1. 同一 OD、同一图、同一起终点；
+  2. 把 e 换成 iGRC 档位（<25/<250/<2,500/<25,000/<250,000/>250,000 ppl/km²）对应的
+     常数；
+  3. 比较两套模型选出的路线是否相同、C 的排序是否一致；
+  4. 报告不一致处，而不是只报一致处。
+
+这一步列为后续工作；在本文的数据与参数下，任何「我们的方法优于 X」的结论都不成立。
+
 
 ## 5. 验证
 
@@ -139,6 +198,25 @@ E(R)       = C(R) / L(R)                     # 无量纲
 5. 通信/电磁干扰、天气、动态空域未建模；只写局限。
 6. 400 m 网格对起点偏移敏感（|ΔC| 20.8%），主实验固定 200 m。
 
+### 6.1 讨论
+
+**λ 的量纲与可迁移性**：e 是无量纲的 0–1 值，因此 λ 也无需量纲；它的含义是「每单位
+暴露的相对距离惩罚」——λ=0.825 表示「暴露每增加 0.01，愿意多绕 0.8% 的距离」。也正
+因为它是相对量，λ* 不能跨数据集、跨网格直接搬用；换个城市或换一套人口数据，阈值
+必须重算。
+
+**为什么不用「风险」「安全」**：这两个词会让人以为本文算了概率或做了合规判断。本文
+既没有失效概率，也没有 SORA 的 iGRC/SAIL，更没有审批依据；用「暴露」能把话说小、
+说准。
+
+**政策含义的边界**：结果支持一个谨慎的工程建议——机场净空安全区内不宜设起降点，
+因为按硬约束处理时 4 组机场向 OD 全部不可达；但这只是几何与暴露层面的结论，不等于
+「该区域一律禁止」，具体飞行仍需按通告与条例申请。主区/副区未细分，也是后续才能
+回答的问题。
+
+**可复现性作为贡献**：13 步一键流程、62 项测试、shapely 独立几何复核、CSV/PNG 由脚本
+重生成，使得「换个参数、换个城市重跑」是可执行的，而不是只在论文里成立。
+
 ## 7. 贡献
 
 - 一个可复现的低空路径规划原型：数据→网格/空域→最短路→暴露加权→Pareto→敏感性→测试。
@@ -146,10 +224,42 @@ E(R)       = C(R) / L(R)                     # 无量纲
 - 用真实 WorldPop 数据与独立几何校验，给出合成数据无法支撑的定量对比。
 - 明确「净空区内不宜设起降点」的可操作含义，而不是笼统说「避开机场」。
 
-## 8. 待补（Day 16）
+## 参考文献
 
-- [[TODO]] 文献综述段落与引用编号（`docs/literature.md` 11 条）
-- [[TODO]] 与外部基线对比（A*/RRT* 或 iGRC 分档），至少讨论
-- [[TODO]] 英文摘要（1 页）
-- [[TODO]] 图表统一编号与图注、300 dpi 检查
-- [[TODO]] 讨论：为什么 λ 的量纲、为什么不用「风险」二字
+[1] JARUS. *Guidelines on Specific Operations Risk Assessment (SORA)*, Edition 2.5
+(main body draft, for external consultation), 2024-02.
+
+[2] Primatesta, S., Rizzo, A., la Cour-Harbo, A. Ground Risk Map for Unmanned Aircraft
+in Urban Environments. *Journal of Intelligent & Robotic Systems*, 97:489–509, 2019.
+DOI: 10.1007/s10846-019-01015-z.
+
+[3] Washington, A., Clothier, R. A., Silva, J. A review of unmanned aircraft system
+ground risk models. *Progress in Aerospace Sciences*, 2017.
+DOI: 10.1016/j.paerosci.2017.10.001.
+
+[4] la Cour-Harbo, A. Quantifying Risk of Ground Impact Fatalities for Small Unmanned
+Aircraft. *Journal of Intelligent & Robotic Systems*, 2018.
+DOI: 10.1007/s10846-018-0853-1.
+
+[5] Bertrand, S., Lala, M., Raballand, N. Handling Uncertainties in Ground Risk Buffer
+Computation for Risk Assessment and Preparation of UAV Operations. *ICUAS 2023*.
+DOI: 10.1109/icuas57906.2023.10156086.
+
+[6] Li, X., Zhang, Y., Li, Y., Liu, Y. An Air Route Network Planning Model of Logistics
+UAV Terminal Distribution in Urban Low Altitude Airspace. *Sustainability*, 13(23):13079,
+2021. DOI: 10.3390/su132313079.
+
+[7] Feng, Y., Zhang, Y., Tang, Y., Wang, Y., Feng, Y., Zhong, Y. Digital Low-Altitude
+Airspace UAV Path Planning and Operational Capacity Assessment in Urban Risk Environments.
+*Drones*, 9(5):320, 2025. DOI: 10.3390/drones9050320.
+
+[8] Ford, A. T., McEntee, R. J. Assessment of the Risk to Ground Population Due to an
+Unmanned Aircraft In-Flight Failure. *AIAA ATIO 2010*. DOI: 10.2514/6.2010-9056.
+
+[9] Tatem, A. J. WorldPop, open data for spatial demography. *Scientific Data*, 4:170004,
+2017. DOI: 10.1038/sdata.2017.4.
+
+[10] 深圳市公安局. 关于加强深圳机场净空区域安全保护的通告（深公规〔2017〕3 号），
+2017-03-14.
+
+[11] 国务院、中央军委. 无人驾驶航空器飞行管理暂行条例（第 761 号令），2024-01-01 施行.
