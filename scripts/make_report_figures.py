@@ -211,7 +211,7 @@ def fig_pareto():
                     arrowprops=dict(arrowstyle="-", color=colors[i], lw=0.8,
                                     shrinkA=2, shrinkB=5))
 
-    ax.text(7.18, 3000, "解 2 → 解 3：+7.09% 距离，C −19.0%（相对解 2）",
+    ax.text(7.18, 3000, "解 2 → 解 3：距离 +7.09%，C −19.0%（相对解 2）",
             fontsize=7.2, color="#666666")
 
     ax.set_xlabel("路线长度 (km)")

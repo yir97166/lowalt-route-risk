@@ -79,7 +79,7 @@ def add_footer_page_number(section) -> None:
 
 
 INLINE = re.compile(r"(\*\*.+?\*\*|\*[^*]+\*|`[^`]+`)")
-CITE = re.compile(r"(\[\d+(?:[–-]\d+)?(?:,\s*\d+)*\])")
+CITE = re.compile(r"\[\d+\]")
 FIG_MAP = {
     "13_airspace_wide.png": "figures/report/fig1_airspace.png",
     "00_population.png": "figures/report/fig2_population.png",
@@ -128,7 +128,7 @@ def join_smart(parts: list[str]) -> str:
     return out
 
 
-def add_table(doc, rows: list[list[str]]) -> None:
+def add_table(doc, rows: list[list[str]], keep_together: bool = False) -> None:
     cols = len(rows[0])
     table = doc.add_table(rows=len(rows), cols=cols)
     table.alignment = WD_TABLE_ALIGNMENT.CENTER
@@ -183,11 +183,15 @@ def add_table(doc, rows: list[list[str]]) -> None:
         for r in range(len(rows)):
             table.cell(r, c).width = w
 
-    # 表头跨页重复、行不拆分
+    # 表头跨页重复、行不拆分；小表整体不跨页
     trPr = table.rows[0]._tr.get_or_add_trPr()
     trPr.append(OxmlElement("w:tblHeader"))
-    for row in table.rows:
+    for idx, row in enumerate(table.rows):
         row._tr.get_or_add_trPr().append(OxmlElement("w:cantSplit"))
+        if keep_together and idx < len(table.rows) - 1:
+            for cell in row.cells:
+                for para in cell.paragraphs:
+                    para.paragraph_format.keep_with_next = True
 
 
 def add_image(doc, path: Path, caption: str) -> None:
@@ -306,6 +310,11 @@ def build() -> None:
             i += 1
             continue
 
+        if line.strip() == "\\pagebreak":
+            doc.add_page_break()
+            i += 1
+            continue
+
         if not line.strip():
             i += 1
             continue
@@ -373,7 +382,7 @@ def build() -> None:
                     rows.append([c.strip() for c in cells])
                 i += 1
             if rows:
-                add_table(doc, rows)
+                add_table(doc, rows, keep_together=len(rows) <= 4)
                 doc.add_paragraph().paragraph_format.space_after = Pt(0)
             continue
 
