@@ -16,9 +16,9 @@ KEYS = [
 
 REPORT_FIGS = {
     "13_airspace_wide.png": ("figures/report/fig1_airspace.png", "12.4cm"),
-    "00_population.png": ("figures/report/fig2_population.png", "12.2cm"),
-    "03_route_compare.png": ("figures/report/fig3_routes.png", "7.8cm"),
-    "05_pareto.png": ("figures/report/fig4_pareto.png", "10.4cm"),
+    "00_population.png": ("figures/report/fig2_population.png", "12.0cm"),
+    "03_route_compare.png": ("figures/report/fig3_routes.png", "7.6cm"),
+    "05_pareto.png": ("figures/report/fig4_pareto.png", "10.2cm"),
 }
 
 EQUATIONS = [
@@ -95,9 +95,15 @@ def main() -> None:
             else:
                 in_code = False
                 if code_buf and "pop_norm" in code_buf[0]:
-                    for k, eq in enumerate(EQUATIONS, 1):
-                        out.append(f"$${eq}$$ {{#eq-{k}}}")
-                        out.append("")
+                    plain = [
+                        "pop_norm = min(pop / p95, 1)　　(1)",
+                        "e = pop_norm × severity × (1 − shelter) × alt_factor　　(2)",
+                        "C = Σ_e l_e × (e_a + e_b) / 2　　(3)",
+                        "E = C / L　　(4)",
+                    ]
+                    for line_txt in plain:
+                        out.append("%% 普通 " + line_txt)
+                    out.append("")
                 else:
                     for cl in code_buf:
                         out.append("%% 普通 " + cl)

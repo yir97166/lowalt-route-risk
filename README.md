@@ -22,10 +22,10 @@
 | 核心 OD 最短路 | 罗湖—福田 7.014 km，绕行率 1.051，0 次穿越 | `results/baseline.csv` |
 | 扩展 OD | 4 组端点落在机场净空区内，判不可达（不是把端点挪走） | `results/baseline.csv` |
 | λ=1 加权 | 核心 OD 7.014 → 7.511 km（+7.09%），C 3,922.2 → 2,625.9（−33.05%） | `results/compare.csv` |
-| λ 扫描 | 81 档 λ（步长 0.025）→ 3 个不同解、2 个切换点（0.025 / 0.825）；长度 7.014–7.511 km，C 2,625.9–3,922.2 | `results/pareto_routes.csv` |
+| λ 扫描 | 核心 OD 81 档（步长 0.025）、其余 4 组各 41 档（步长 0.05）→ 3 个不同解、2 个切换点（0.025 / 0.825）；长度 7.014–7.511 km，C 2,625.9–3,922.2 | `results/pareto_routes.csv` |
 | 分辨率敏感性 | 100 / 200 / 400 m：长度 +5.8% / +7.1% / 0.0%；沿路人口密度 −40.8% / −38.8% / −12.6% | `results/resolution.csv` |
 | 吸附偏移敏感性 | 起终点整体平移 ±0.5 格：C 最大变动 100 m ±1.6% / 200 m ±3.6% / 400 m ±20.8% | `results/origin_shift_summary.csv` |
-| 工程验证 | pytest **69 项**；13 步一键流程 117.2 s；真实数据可复跑 | 见下 |
+| 工程验证 | pytest **69 项**；13 步一键流程 117.9 s；真实数据可复跑 | 见下 |
 
 > 人口为 **WorldPop 2020 中国 100 m 约束版**（Day 14 起主数据；`data/raw/worldpop/chn_ppp_2020_UNadj_constrained.tif`）。
 > WorldPop 是建模估计而非普查，绝对数字仍有不确定性；结论只做相对比较，不代表真实风险。
@@ -46,7 +46,7 @@ python -m venv .venv
 .\.venv\Scripts\python.exe -m src.cli all --dry-run
 ```
 
-实测：安装约 2 分钟，全流程 13 步 **117.2 s**，产出 `figures/00–13`、`results/*.csv`、`data/processed/*`。
+实测：安装约 2 分钟，全流程 13 步 **117.9 s**，产出 `figures/00–13`、`results/*.csv`、`data/processed/*`。
 单独重跑某一步时，脚本彼此独立，见 `scripts/`。
 
 真实数据：`configs/aoi.yaml` 的 `data.population_tif` 指向 `data/raw/worldpop/chn_ppp_2020_UNadj_constrained.tif`；
@@ -70,7 +70,7 @@ $env:LOWALT_DATA_MODE="synthetic"
 2. **约束**：禁飞区删节点/删边；起终点吸附到最近可通行格并记录 `snap_offset_m`；路线用独立几何库复核 0 穿越。
 3. **暴露代理**：`pop_norm × (1 − shelter) × alt_factor`，`pop_norm = min(pop/p95, 1)`；核心实验固定 60 m。
 4. **边权**：`长度 × (1 + λ × 暴露)`；λ 无量纲偏好权重，不是能耗或时间。
-5. **求解与对比**：λ=0 为最短路 baseline；λ=1 对比；λ=0–2 扫描得到非支配解（Pareto 前沿）。
+5. **求解与对比**：λ=0 为最短路 baseline；λ=1 对比；λ=0–2 加权和扫描，识别受支持解（不声称完整前沿）。
 
 ## 范围与边界（MVP）
 
@@ -151,7 +151,7 @@ lowalt-route-risk/
   不挪端点凑可达；4 组保留为「净空区内不宜设起降点」的反例。
 - 测试补全：新增 `tests/test_risk.py`（9）、`tests/test_grid.py`（8）、
   `tests/test_config.py`（4），合计 **49 passed**。
-- 全管线重跑（`scripts/run_all.py` 11 步）：硬禁飞 4,982 格、图 7,562 节点、
+- 全管线重跑（`scripts/run_all.py` 13 步）：硬禁飞 4,982 格、图 7,562 节点、
   核心 OD 7.014 km、λ=1 C 4,387.8→4,326.0（−1.4%）、Pareto 7 解 6 切换点。
 - 文档同步：README/PLAN/spec/assumptions/decisions/literature/pitch/pareto_reading
   全部改到「硬禁飞 + 罗湖—福田」口径。
@@ -227,7 +227,7 @@ lowalt-route-risk/
 - 新增 `figures/13_airspace_wide.png`：用 EPSG:32649 米制坐标、横纵等比例，完整显示
   机场净空安全区走廊（40 km × 20 km）与 AOI 的位置关系；把 AOI 内受净空约束的部分
   （37.5%）加深标出，避免「AOI 里只看到一小段机场边界」的误读。
-- `scripts/make_airspace_wide.py` 加入 `run_all.py`（第 13 步）；实测 13 步 **117.2 s**。
+- `scripts/make_airspace_wide.py` 加入 `run_all.py`（第 13 步）；实测 13 步 **117.9 s**。
 - 中期复核：λ=1 仍为 7.511 km（+7.09%）/ C 2,625.9（−33.05%）；Pareto 3 解 2 切换点
   （0.025 / 0.825）；批量 5 组、测试 64 项均未变。
 - `report/report_zh.md` 建立 6–8 页报告骨架，方法与结果两节已填初稿，待 Day 16 补全。
@@ -239,7 +239,7 @@ lowalt-route-risk/
   来源 WorldPop 2020 中国约束版（100 m），许可 CC BY 4.0，引用 Tatem 2017 Sci Data。
 - `configs/aoi.yaml` 的 `data.population_tif` 已指向该文件；合成数据仅保留为离线 fallback
   （`--synthetic` 与 `data/synthetic_population.tif`）。
-- 重跑 `python -m src.cli all`：13 步 117.2 s，图 00–13 与 `results/*.csv` 全部按真实数据重生成。
+- 重跑 `python -m src.cli all`：13 步 117.9 s，图 00–13 与 `results/*.csv` 全部按真实数据重生成。
 - 关键数字变化（合成 → 真实）：
 
 | 指标 | 合成数据 | WorldPop 2020 |

@@ -35,7 +35,7 @@
 
 > The analysis code (Python 3.12) is available at the same repository and tag. The full
 > pipeline is reproduced with `python -m src.cli all` (13 steps, about 117 s), and the test
-> suite with `pytest` (62 tests).
+> suite with `pytest` (69 tests).
 
 ## 3. 复现所需命令
 
@@ -50,7 +50,7 @@ python -m venv .venv
 ## 4. 待补 / 风险
 
 - 仓库目前**没有 DOI**（只有 GitHub tag）。投 Nature 系期刊前建议用 Zenodo 归档 `v1.0` 并拿到 DOI，再替换声明中的标识。
-- `LICENSE` 文件尚未落盘（README 已写「代码 MIT、文档 CC BY 4.0」）；投稿前建议补一个 MIT `LICENSE`。
+- `LICENSE`：仓库根目录已有 MIT 许可证；文档按 CC BY 4.0 释出。
 - WorldPop 的访问日期、文件大小与 SHA256 已写入 `README.md` 与 `docs/progress_log.md`，审稿人可据此核对版本。
 - 若期刊要求「source data 按图逐张提供」，当前 `figures/report/*.pdf` 与 `results/*.csv` 可满足；必要时再补 `Source Data Fig1–4.xlsx`。
 
