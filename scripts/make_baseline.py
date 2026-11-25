@@ -31,7 +31,7 @@ from src.grid import build_grid  # noqa: E402
 from src.graph import build_graph, graph_stats  # noqa: E402
 from src.mask import (  # noqa: E402
     blocked_mask,
-    feasible_od,
+    feasible_od, od_feasibility,
     nearest_free_cell,
     path_to_lonlat,
     restricted_mask,
@@ -75,13 +75,13 @@ def main() -> int:
     rows: list[dict] = []
     core_route = None
     for od in cfg.od_pairs:
-        s, d, feasible = feasible_od(cfg, grid, blocked, od, MAX_SNAP_M)
+        s, d, feasible, reason = od_feasibility(cfg, grid, blocked, od, MAX_SNAP_M)
         if not feasible:
             print(f"{od.name}: 端点落在硬禁飞区内（吸附 {s.offset_m:.0f}/{d.offset_m:.0f} m），判不可达")
             rows.append({"od": od.name, "lambda": 0.0, "reachable": False,
                          "start_offset_m": round(s.offset_m, 1),
                          "dest_offset_m": round(d.offset_m, 1),
-                         "note": "endpoint_in_hard_zone"})
+                         "note": reason})
             continue
         try:
             route = plan_route(graph, grid, (s.row, s.col), (d.row, d.col))

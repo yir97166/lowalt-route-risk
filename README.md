@@ -25,7 +25,7 @@
 | λ 扫描 | 81 档 λ（步长 0.025）→ 3 个不同解、2 个切换点（0.025 / 0.825）；长度 7.014–7.511 km，C 2,625.9–3,922.2 | `results/pareto_routes.csv` |
 | 分辨率敏感性 | 100 / 200 / 400 m：长度 +5.8% / +7.1% / 0.0%；沿路人口密度 −40.8% / −38.8% / −12.6% | `results/resolution.csv` |
 | 吸附偏移敏感性 | 起终点整体平移 ±0.5 格：C 最大变动 100 m ±1.6% / 200 m ±3.6% / 400 m ±20.8% | `results/origin_shift_summary.csv` |
-| 工程验证 | pytest **62 项**；13 步一键流程 117.2 s；真实数据可复跑 | 见下 |
+| 工程验证 | pytest **64 项**；13 步一键流程 117.2 s；真实数据可复跑 | 见下 |
 
 > 人口为 **WorldPop 2020 中国 100 m 约束版**（Day 14 起主数据；`data/raw/worldpop/chn_ppp_2020_UNadj_constrained.tif`）。
 > WorldPop 是建模估计而非普查，绝对数字仍有不确定性；结论只做相对比较，不代表真实风险。
@@ -80,7 +80,7 @@ lowalt-route-risk/
 ├─ src/                    # config / grid / data / risk / mask / graph / router / viz
 ├─ src/                    # config / grid / data / risk / mask / graph / router / metrics / viz / cli
 ├─ scripts/                # 数据生成、各实验结果、run_all.py 一键复现
-├─ tests/                  # mask / graph / router / risk / grid / metrics / cli，共 62 项
+├─ tests/                  # mask / graph / router / risk / grid / metrics / cli，共 64 项
 ├─ docs/                   # 设计、假设、决策、数据来源、日志、周报说明
 ├─ figures/                # 00–13 核心图、批量图、敏感性图与宽幅空域图
 ├─ results/                # baseline / compare / pareto / resolution / 参数敏感性 CSV
@@ -161,7 +161,7 @@ lowalt-route-risk/
   统一入口、可单阶段重跑、`--dry-run` 只打印命令。
 - 设计原则：CLI 不重复算法，只编排既有脚本；单步仍可独立运行（`scripts/*.py`）。
 - 测试新增 `tests/test_cli.py` 6 项（阶段脚本存在、`all` 委托 run_all、`check` 调 pytest、
-  `--config` 透传、Pareto 两脚本顺序、阶段顺序），`pytest` 合计 **62 项**。
+  `--config` 透传、Pareto 两脚本顺序、阶段顺序），`pytest` 合计 **64 项**。
 - README 快速开始改为 `python -m src.cli all`，并列出单阶段命令。
 
 ## Day 11 记录（2026-11-23，提前）
@@ -187,7 +187,7 @@ lowalt-route-risk/
 - `scripts/run_all.py`：每步记录 `step/label/command/seconds/exit`，写
   `logs/run_all_<时间戳>.log` 与同名 `.json`，并复制为 `logs/latest.json`；
   任一步失败即停止并保留 summary；Ctrl+C 记 `interrupted` 返回 130。
-- 实测 12 步 125.5 s；`pytest` 62 项（新增 4 项日志测试）。
+- 实测 12 步 125.5 s；`pytest` 64 项（新增 4 项日志测试）。
   `logs/` 已加入 `.gitignore`，不进仓库。
 - 口径：日志只记录运行事实，不改变结果；种子只影响合成人口，真实数据路径不受影响。
 
@@ -206,7 +206,7 @@ lowalt-route-risk/
   3 方法 → 4 结果/图/外部基线 → 5 验证 → 6 局限/讨论 → 7 贡献 → 参考文献。
 - 明确写清未做外部方法实现：A\*/RRT\* 与 Dijkstra 在固定网格上最优解相同，不构成
   「更强基线」；真正需要的是换风险模型（iGRC 分档/平均密度），列为后续工作，不伪称完成。
-- 交付物：docx + pdf 已复制到桌面审核包；`pytest` 62 项仍全绿（本轮只改文档/构建脚本）。
+- 交付物：docx + pdf 已复制到桌面审核包；`pytest` 64 项仍全绿（本轮只改文档/构建脚本）。
 
 ## Day 15：3 张核心图定稿 + 宽幅空域图（2026-11-24）
 
@@ -217,7 +217,7 @@ lowalt-route-risk/
   （37.5%）加深标出，避免「AOI 里只看到一小段机场边界」的误读。
 - `scripts/make_airspace_wide.py` 加入 `run_all.py`（第 13 步）；实测 13 步 **117.2 s**。
 - 中期复核：λ=1 仍为 7.511 km（+7.09%）/ C 2,625.9（−33.05%）；Pareto 3 解 2 切换点
-  （0.025 / 0.825）；批量 5 组、测试 62 项均未变。
+  （0.025 / 0.825）；批量 5 组、测试 64 项均未变。
 - `report/report_zh.md` 建立 6–8 页报告骨架，方法与结果两节已填初稿，待 Day 16 补全。
 
 ## Day 14：主数据切换为真实 WorldPop（2026-11-23）

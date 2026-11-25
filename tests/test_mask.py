@@ -172,3 +172,22 @@ def test_corridor_buffer_scaling_is_monotonic() -> None:
     counts = [int(blocked_mask(scale_corridor(cfg, f), grid).sum()) for f in (0.5, 1.0, 1.5)]
     assert counts[0] < counts[1] < counts[2]
     assert counts[1] == int(blocked_mask(cfg, grid).sum())
+
+
+def test_point_in_hard_zone_geometry(cfg):
+    from src.mask import point_in_hard_zone
+    assert point_in_hard_zone(cfg, 113.8117, 22.6383) is True   # 走廊中心
+    assert point_in_hard_zone(cfg, 114.09, 22.49) is False      # AOI 东南角
+
+
+def test_od_feasibility_reason_geometric(cfg, grid):
+    from src.mask import blocked_mask, od_feasibility
+    from src.config import ODPair
+    blocked = blocked_mask(cfg, grid)
+    bad = ODPair(name="inside_corridor", origin=(113.8117, 22.6383),
+                 destination=(114.09, 22.49))
+    s, d, ok, reason = od_feasibility(cfg, grid, blocked, bad, max_snap_m=10_000)
+    assert ok is False and reason == "endpoint_in_hard_zone"
+    core = next(o for o in cfg.od_pairs if o.name == "luohu_to_futian")
+    _, _, ok2, reason2 = od_feasibility(cfg, grid, blocked, core)
+    assert ok2 is True and reason2 == "ok"

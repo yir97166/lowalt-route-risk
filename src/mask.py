@@ -192,6 +192,39 @@ def nearest_free_cell(
     )
 
 
+def point_in_hard_zone(cfg: Config, lon: float, lat: float) -> bool:
+    """端点是否直接落在任一硬禁飞区内（shapely 判定，含边界）。"""
+    zones = [g for _, g in hard_zone_geometries(cfg)]
+    if not zones:
+        return False
+    t = Transformer.from_crs(cfg.crs_input, cfg.crs_metric, always_xy=True)
+    x, y = t.transform(lon, lat)
+    return bool(unary_union(zones).covers(Point(x, y)))
+
+
+def od_feasibility(
+    cfg: Config,
+    grid: Grid,
+    blocked: np.ndarray,
+    od,
+    max_snap_m: float = 300.0,
+) -> tuple[SnapResult, SnapResult, bool, str]:
+    """判定 OD 是否可飞，返回 (起点吸附, 终点吸附, 是否可达, 原因)。
+
+    原因优先级：
+    - endpoint_in_hard_zone：端点几何上落在硬禁飞区内；
+    - snap_too_far：端点在禁飞区外，但最近可通行格超过 max_snap_m；
+    - ok：两端都可吸附且偏移在阈值内。
+    """
+    s = nearest_free_cell(cfg, grid, blocked, *od.origin)
+    d = nearest_free_cell(cfg, grid, blocked, *od.destination)
+    if point_in_hard_zone(cfg, *od.origin) or point_in_hard_zone(cfg, *od.destination):
+        return s, d, False, "endpoint_in_hard_zone"
+    if max(s.offset_m, d.offset_m) > max_snap_m:
+        return s, d, False, "snap_too_far"
+    return s, d, True, "ok"
+
+
 def feasible_od(
     cfg: Config,
     grid: Grid,
@@ -199,14 +232,9 @@ def feasible_od(
     od,
     max_snap_m: float = 300.0,
 ) -> tuple[SnapResult, SnapResult, bool]:
-    """吸附 OD 两端；偏移超过 max_snap_m 视为端点落在硬禁飞区内、判不可达。
-
-    300 m 是一次工程判断：100 m 用来提醒坐标精度不足，300 m 之外已不是
-    「同一点位附近」，继续吸附会把端点悄悄搬到几公里外，等于改题。
-    """
-    s = nearest_free_cell(cfg, grid, blocked, *od.origin)
-    d = nearest_free_cell(cfg, grid, blocked, *od.destination)
-    return s, d, max(s.offset_m, d.offset_m) <= max_snap_m
+    """兼容旧接口：只返回是否可达。"""
+    s, d, ok, _ = od_feasibility(cfg, grid, blocked, od, max_snap_m)
+    return s, d, ok
 
 
 def path_line(cells: list[tuple[int, int]], grid: Grid) -> LineString:
