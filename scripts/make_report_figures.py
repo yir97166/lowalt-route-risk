@@ -51,7 +51,7 @@ from src.data import load_grid_arrays  # noqa: E402
 from src.graph import build_graph  # noqa: E402
 from src.grid import build_grid  # noqa: E402
 from src.mask import blocked_mask, feasible_od, zone_geometries  # noqa: E402
-from src.router import plan_route, plan_route_weighted  # noqa: E402
+from src.router import plan_route, plan_route_weighted, route_exposure_m  # noqa: E402
 
 OUT = ROOT / "figures" / "report"
 OUT.mkdir(parents=True, exist_ok=True)
@@ -167,16 +167,21 @@ def fig_routes(cfg, grid):
     origin, dest, _ = feasible_od(cfg, grid, blocked, core)
     s, g = (origin.row, origin.col), (dest.row, dest.col)
     base = plan_route(graph, grid, s, g)
-    wtd = plan_route_weighted(graph, grid, s, g, exposure, 1.0)
+    mid = plan_route_weighted(graph, grid, s, g, exposure, 0.5)
+    det = plan_route_weighted(graph, grid, s, g, exposure, 1.2)
     trafo = Transformer.from_crs(cfg.crs_metric, cfg.crs_input, always_xy=True)
+
+    def _c(route):
+        return route_exposure_m(graph, route.cells, exposure)
 
     fig, ax = plt.subplots(figsize=(6.5, 4.3))
     ax.imshow(np.log10(pop + 1), cmap="Greys", origin="upper",
               extent=[lon.min(), lon.max(), lat.min(), lat.max()],
               aspect="auto", alpha=0.55, interpolation="nearest")
     for route, color, ls, label in (
-        (base, CYAN, "-", f"最短路 7.01 km"),
-        (wtd, MAGENTA, (0, (4, 2)), f"低暴露 7.51 km"),
+        (base, "#555555", "-", f"λ=0 基线 {base.length_m/1000:.3f} km，C={_c(base):.0f}"),
+        (mid, CYAN, (0, (5, 2)), f"λ=0.5 等长重选 {mid.length_m/1000:.3f} km，C={_c(mid):.0f}"),
+        (det, MAGENTA, "-", f"λ=1.2 真绕行 {det.length_m/1000:.3f} km，C={_c(det):.0f}"),
     ):
         xs, ys = zip(*[(grid.xs[c], grid.ys[r]) for r, c in route.cells])
         lons, lats = trafo.transform(xs, ys)
@@ -191,7 +196,7 @@ def fig_routes(cfg, grid):
                 textcoords="offset points", fontsize=8)
     ax.set_xlabel("经度 (°E)")
     ax.set_ylabel("纬度 (°N)")
-    ax.set_title("核心 OD：最短 vs 低暴露（λ=1）", fontsize=9)
+    ax.set_title("核心 OD 的三个解：等长重选与真绕行", fontsize=9)
     ax.legend(loc="upper left", frameon=True, framealpha=0.9)
     fig.tight_layout()
     fig.savefig(OUT / "fig3_routes.png", bbox_inches="tight")

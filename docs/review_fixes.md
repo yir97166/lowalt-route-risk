@@ -21,14 +21,14 @@
 | 13 | R3：表 2 写 5 组 OD 实际 9 组 | 改「9 组 OD，含 4 组反例」 | 报告 §2 |
 | 14 | R2-m9：data_availability 的 LICENSE/SHA256 声明与仓库不符 | 改「根目录已放 MIT LICENSE」「哈希可按需本地复算」 | `docs/data_availability.md` |
 | 15 | R2-m11：README 58 vs 正文 62 | README 两处改 64（本轮新增 2 项测试） | `README.md` |
+| 17 | R2-m2/R3：图 3 只画两条路线、缺等长解 | 图 3 改为三条：λ=0 基线、λ=0.5 等长重选、λ=1.2 真绕行，图注与图例标出长度/C | `figures/report/fig3_routes.png`、报告 §4.1 |
+| 18 | R3：公式引用写「(1)-(3)」但排了四式 | 全文改为「式 (1)–(4)」 | 报告 §3.1 |
 | 16 | R2-m7/m8：assumptions 与 indicator 口径过期 | 阈值改 0.725/0.825/0.950；「合成人口」改 WorldPop；λ 表述同步 | `docs/assumptions.md`、`docs/indicator_definition.md` |
 
 ## 仍未处理（已知）
 
 | # | 意见 | 原因 / 计划 |
 |---|---|---|
-| A | 图 3 只画两条路线，缺等长解 | 需要重画三路线图；图注与数据已有 `pareto_sweep_full.csv`，可作为下一轮 |
-| B | 公式引用写「式 (1)-(3)」但排了四式 | 手工改 md 一行即可，下一轮 |
 | C | `e_edge` 未定义、缺符号表 | 下一轮补一小节 |
 | D | 干净克隆会回退合成数据并覆盖结果 | 需要在 `src/data.py` 加显式开关/报错；属行为改动，下一轮 |
 | E | route_hash 去重把目标值相同的 4 条算 4 解 | 需在去重时按 `(length, C)` 合并；下一轮 |
