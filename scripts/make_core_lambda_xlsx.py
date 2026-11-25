@@ -39,7 +39,7 @@ def main() -> None:
     body = []
     base_c = None
     for r in rows:
-        c = float(r["exposure_km"])
+        c = float(r["c_proxy_km"])
         base_c = c if base_c is None else base_c
         body.append([
             float(r["lambda"]),

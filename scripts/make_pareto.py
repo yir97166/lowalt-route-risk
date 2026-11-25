@@ -112,8 +112,8 @@ def main() -> int:
                 "lambda": float(lam),
                 "length_m": round(route.length_m, 1),
                 "length_km": round(route.length_m / 1000.0, 3),
-                "exposure_m": round(expo, 1),
-                "exposure_km": round(expo / 1000.0, 3),
+                "c_proxy_m": round(expo, 1),
+                "c_proxy_km": round(expo / 1000.0, 3),
                 "delta_len_pct": round(delta_pct, 3),
                 "exposure_drop_pct": round(exp_drop, 2),
                 "detour_ratio": round(route.detour_ratio, 4),
@@ -123,7 +123,7 @@ def main() -> int:
                 "n_cells": len(route.cells),
             })
         df_od = pd.DataFrame(od_rows)
-        mask = pareto_mask(df_od["length_m"].to_numpy(), df_od["exposure_m"].to_numpy())
+        mask = pareto_mask(df_od["length_m"].to_numpy(), df_od["c_proxy_m"].to_numpy())
         for i, r in enumerate(od_rows):
             r["pareto"] = bool(mask[i])
         df_od["pareto"] = mask
@@ -131,14 +131,14 @@ def main() -> int:
         for _, r in df_od[mask].iterrows():
             fronts.append({
                 "od": r["od"], "lambda": r["lambda"], "length_km": r["length_km"],
-                "exposure_km": r["exposure_km"], "detour_ratio": r["detour_ratio"],
+                "c_proxy_km": r["c_proxy_km"], "detour_ratio": r["detour_ratio"],
             })
         per_od[short_label(od)] = list(zip(
             df_od["delta_len_pct"], df_od["exposure_drop_pct"], df_od["lambda"]))
         n_front = int(mask.sum())
         print(f"{od.name}: {len(df_od)} 个 λ · 前沿 {n_front} 点 · "
               f"长度 {df_od['length_km'].min():.3f}–{df_od['length_km'].max():.3f} km · "
-              f"暴露 {df_od['exposure_km'].min():.3f}–{df_od['exposure_km'].max():.3f}")
+              f"C {df_od['c_proxy_m'].min():.0f}–{df_od['c_proxy_m'].max():.0f} 代理·米")
 
     df = pd.DataFrame(rows)
     out_csv = cfg.resolve(args.out_csv)
@@ -151,10 +151,10 @@ def main() -> int:
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14.5, 6.6), dpi=300,
                                    gridspec_kw={"width_ratios": [1.15, 1.0]})
     core = df[df["od"] == cfg.od_pairs[0].name].sort_values("lambda")
-    sc = ax1.scatter(core["length_km"], core["exposure_km"], c=core["lambda"],
+    sc = ax1.scatter(core["length_km"], core["c_proxy_km"], c=core["lambda"],
                      cmap="viridis", s=42, edgecolor="black", linewidth=0.3, zorder=3)
     front = core[core["pareto"]].sort_values("length_km")
-    ax1.plot(front["length_km"], front["exposure_km"], color="#d62728", lw=2.0,
+    ax1.plot(front["length_km"], front["c_proxy_km"], color="#d62728", lw=2.0,
              marker="o", ms=4, zorder=4, label="Pareto 非支配点")
     ax1.set_xlabel("路线长度（km）")
     ax1.set_ylabel("累计暴露（暴露值 × km）")
@@ -167,7 +167,7 @@ def main() -> int:
         row = core[np.isclose(core["lambda"], lam_mark)]
         if len(row):
             r = row.iloc[0]
-            ax1.annotate(f"λ={lam_mark:g}", (r["length_km"], r["exposure_km"]),
+            ax1.annotate(f"λ={lam_mark:g}", (r["length_km"], r["c_proxy_km"]),
                          textcoords="offset points", xytext=(6, 6), fontsize=8)
 
     for name, pts in per_od.items():

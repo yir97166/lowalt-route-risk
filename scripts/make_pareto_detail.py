@@ -56,7 +56,7 @@ from src.mask import (  # noqa: E402
 
 MAX_SNAP_M = 300.0
 from src.metrics import route_metrics  # noqa: E402
-from src.router import plan_route_weighted  # noqa: E402
+from src.router import plan_route_weighted, route_exposure_m  # noqa: E402
 
 SHORT_NAMES = {
     "luohu_to_futian": "罗湖—福田",
@@ -108,6 +108,7 @@ def main() -> int:
     print(f"{grid.cols}×{grid.rows} 格 · {graph.number_of_nodes():,} 节点 · 去重规则：{DEDUP_RULE}")
 
     route_rows: list[dict] = []
+    sweep_all: list[dict] = []
     trans_rows: list[dict] = []
     panels: list[dict] = []
     total_bad = 0
@@ -123,13 +124,18 @@ def main() -> int:
         start, goal = (s.row, s.col), (d.row, d.col)
 
         seq: list[dict] = []
+        sweep: list[dict] = []
         n_bad = 0
         for lam in lambdas:
             route = plan_route_weighted(graph, grid, start, goal, exposure, lam)
             check = validate_path(list(route.cells), grid, cfg, blocked=blocked)
             n_bad += int(check.crossings) + (0 if check.ok else 1)
-            seq.append({"lambda": float(lam), "cells": tuple(route.cells),
-                        "hash": route_hash(tuple(route.cells))})
+            h = route_hash(tuple(route.cells))
+            seq.append({"lambda": float(lam), "cells": tuple(route.cells), "hash": h})
+            sweep_all.append({"od": od.name, "lambda": float(lam),
+                          "length_km": round(route.length_m / 1000.0, 3),
+                          "c_proxy_m": round(route_exposure_m(graph, route.cells, exposure), 1),
+                          "route_hash": h})
 
         # 按首次出现顺序编号
         order: list[str] = []
@@ -189,6 +195,9 @@ def main() -> int:
     df.to_csv(out_csv, index=False, encoding="utf-8")
     df_t = pd.DataFrame(trans_rows)
     df_t.to_csv(cfg.resolve(args.out_trans), index=False, encoding="utf-8")
+    df_s = pd.DataFrame(sweep_all)
+    df_s.to_csv(cfg.resolve("results/pareto_sweep_full.csv"), index=False, encoding="utf-8")
+    print(f"全量扫描：{len(df_s)} 行 -> results/pareto_sweep_full.csv")
 
     # ---- 图：核心 OD 的三条路线 + 解分布 ----
     core_name = cfg.od_pairs[0].name

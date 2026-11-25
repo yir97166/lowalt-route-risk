@@ -43,7 +43,7 @@
   不是乘一个固定系数；本项目用常数系数是简化，不等价于 SORA 的 M1 评估
   （见 `docs/literature.md` 第 2 节）。
 - **Day 8 敏感性结果**：s = 0.2 / 0.3 / 0.4 时，路线集合完全相同，只是切换阈值
-  按 `1/(1−s)` 平移（1.125 / 1.275 / 1.500），所以结论对 s 的绝对值不敏感；
+  按 `1/(1−s)` 平移（0.725 / 0.825 / 0.950），所以结论对 s 的绝对值不敏感；
   但报告只能说「s=0.30 假设下阈值约 1.3」，不能说 0.30 有依据
   （`scripts/make_param_sensitivity.py`、`results/param_sensitivity_summary.csv`、
   `figures/07_param_sensitivity.png`）。

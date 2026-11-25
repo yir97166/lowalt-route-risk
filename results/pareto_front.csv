@@ -1,4 +1,4 @@
-od,lambda,length_km,exposure_km,detour_ratio
+od,lambda,length_km,c_proxy_km,detour_ratio
 luohu_to_futian,0.1,7.014,3.242,1.0508
 luohu_to_futian,0.9,7.511,2.626,1.1252
 futian_to_luohu,0.1,7.014,3.242,1.0508

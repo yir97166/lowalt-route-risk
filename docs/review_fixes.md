@@ -1,24 +1,35 @@
-# 模拟审稿修改清单（第二轮）
+# 模拟审稿意见修改台账（第二轮）
 
-> 对应 `docs/mock_review.md` 的 10 条优先级清单。状态：✅ 已修 / ⬜ 待做。
-> 最后更新：2026-11-25
+对应 `docs/mock_review.md` 的修改清单。日期：2026-11-25。
 
-| # | 问题（审稿人） | 处理 | 状态 |
+## 已完成
+
+| # | 审稿意见 | 处理 | 证据 |
 |---|---|---|---|
-| 1 | R2-M5：4 组机场向 OD 不可达仅凭 300 m 吸附阈值推断 | `src/mask.py` 新增 `point_in_hard_zone` 与 `od_feasibility`：先 shapely `within` 判定端点，在内直接不可达；在外才吸附，>300 m 记 `snap_too_far`；CSV `note` 写真实原因；新增 2 项测试 | ✅ |
-| 2 | R2-M2：加权和只给 supported 点 | 报告与图注改「ε-约束/非支配解」措辞，不再称「加权和最优」 | ⬜ |
-| 3 | R2-m5：仓库无 81 档逐 λ CSV | 导出 `results/pareto_sweep_full.csv`（81 档 × 核心 OD，含长度、C、路线 hash） | ⬜ |
-| 4 | R2-m13：p95 未做敏感性 | 对 p90/p95/p99 各跑一次核心 OD，记录 C 与阈值是否变化 | ⬜ |
-| 5 | R2-m6：`exposure_km` 列名与单位冲突 | 全仓库改名 `exposure_proxy_m` 并同步脚本/文档 | ⬜ |
-| 6 | R2-m7/m8：assumptions、indicator_definition、statistics_statement 仍写旧阈值/λ=1 等长 | 三份文档按真实数据口径同步 | ⬜ |
+| 1 | R2-M5：4 组机场向 OD 不可达只靠 300 m 吸附阈值 | 新增 `point_in_hard_zone()`（shapely `covers`）与 `od_feasibility()`：先判端点是否在硬禁飞区内，在内直接不可达（不吸附），在外才吸附；CSV `note` 区分 `endpoint_in_hard_zone` / `snap_too_far` / `ok` | `src/mask.py`、`tests/test_mask.py`（2 项新测试）、`results/od_snap.csv` |
+| 2 | R2-M1 / R3-M2：头条 −33.05% 混了等长重选与真绕行 | 摘要与 §4.1 拆成「等长重选 17.4 个点 + 真绕行 19.0 个点」，并明确 λ=1 已进入真绕行（+7.09% 距离） | `report/report_zh.md` §摘要、§4.1；报告 8 页版 |
+| 3 | R2-M2 / R1-M2：λ=0 基线不唯一、解计数按 hash | 报告与 `pareto_reading.md` 写明 λ=0 存在同长度低暴露解（C=3,241.5 / 3,649.5 / 3,922.2），并给出两段切换点；解计数口径写明按「格心序列 hash」 | `docs/pareto_reading.md`、报告 §4.1 |
+| 4 | R2-M4：400 m 结果未披露 | §4.2 增补「400 m 下 λ=1 长度不变、C 只降 13.8%，权衡在粗网格消失」 | `report/report_zh.md` §4.2 |
+| 5 | R2-M6：安全区 ×0.5 时机场向有 1 组可达 | §4.2 增补「安全区 ×0.5/×1.0/×1.5：不可通行 9.3%/39.7%/60.7%，机场向可达 1/0/0；不能把『全部不可达』当固定结论」 | 同上 |
+| 6 | R2-M3：遮蔽/高度是乘子不是经验敏感性 | §4.2 合并为一条：「遮蔽 s=0.2/0.3/0.4 → 0.725/0.825/0.950；高度 60/90/120 → 0.825/0.950/1.175，均为乘子重标定（路线几何不变）」 | 同上 |
+| 7 | R2-m13：p95 未做敏感性 | 新增 `scripts/make_p95_sensitivity.py`：p90/p95/p99 的阈值 0.950/0.825/0.750，解数均 3，结论方向不变；输出 `results/p95_sensitivity.csv` | 脚本 + CSV；报告 §4.2 一句 |
+| 8 | R2-m6：`exposure_km` 列名与单位冲突 | `pareto.csv` 改 `c_proxy_m` / `c_proxy_km`；`make_pareto.py`、`make_core_lambda_xlsx.py`、`make_resolution.py` 同步 | `results/pareto.csv`、脚本 |
+| 9 | R2-m5：仓库无 81 档逐 λ CSV | `make_pareto_detail.py` 增 `sweep_all`，输出 `results/pareto_sweep_full.csv`：245 行，核心 OD 81 档，列 `od/lambda/length_km/c_proxy_m/route_hash` | CSV + 脚本 |
+| 10 | R3-M2：「λ=1 长度不变」自相矛盾 | 全文改为「λ 在 0.025–0.80 长度不变（等长重选）；λ=1 已进入真绕行（+7.09%）」 | 报告 §4.1、`docs/indicator_definition.md`、`docs/statistics_statement.md` |
+| 11 | R3：§4.4 编号跳号、「6. 局限（必须写进报告）」 | 改为 §4.3；标题改「6. 局限与未验证项」 | `report/report_zh.md` |
+| 12 | R3：走廊写 40 km 与实际不符 | 统一为「约 44 km（跑道 3.8 + 两端各 20）」 | 报告 §2、图 1 标注 |
+| 13 | R3：表 2 写 5 组 OD 实际 9 组 | 改「9 组 OD，含 4 组反例」 | 报告 §2 |
+| 14 | R2-m9：data_availability 的 LICENSE/SHA256 声明与仓库不符 | 改「根目录已放 MIT LICENSE」「哈希可按需本地复算」 | `docs/data_availability.md` |
+| 15 | R2-m11：README 58 vs 正文 62 | README 两处改 64（本轮新增 2 项测试） | `README.md` |
+| 16 | R2-m7/m8：assumptions 与 indicator 口径过期 | 阈值改 0.725/0.825/0.950；「合成人口」改 WorldPop；λ 表述同步 | `docs/assumptions.md`、`docs/indicator_definition.md` |
 
-## 复核命令
+## 仍未处理（已知）
 
-```powershell
-.\.venv\Scripts\python.exe -m pytest -q          # 64 passed
-.\.venv\Scripts\python.exe scripts\run_all.py    # 13 步
-```
-
-## 说明
-
-第 1 项已完成并验证：4 组反例端点 `within=True`，核心 OD 两端 `False`；报告 §3.2/§4.2 改为几何判定表述，测试 62→64。核心数字未变（7.014→7.511 km，C −33.05%）。
+| # | 意见 | 原因 / 计划 |
+|---|---|---|
+| A | 图 3 只画两条路线，缺等长解 | 需要重画三路线图；图注与数据已有 `pareto_sweep_full.csv`，可作为下一轮 |
+| B | 公式引用写「式 (1)-(3)」但排了四式 | 手工改 md 一行即可，下一轮 |
+| C | `e_edge` 未定义、缺符号表 | 下一轮补一小节 |
+| D | 干净克隆会回退合成数据并覆盖结果 | 需要在 `src/data.py` 加显式开关/报错；属行为改动，下一轮 |
+| E | route_hash 去重把目标值相同的 4 条算 4 解 | 需在去重时按 `(length, C)` 合并；下一轮 |
+| F | 「净空区内不宜设起降点」是阈值同义反复 | 已弱化为「在本模型 300 m 吸附规则下不可达」，若要更强结论需真实起降点数据 |

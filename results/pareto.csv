@@ -1,4 +1,4 @@
-od,od_short,lambda,length_m,length_km,exposure_m,exposure_km,delta_len_pct,exposure_drop_pct,detour_ratio,restricted_cells,hard_crossings,valid,n_cells,pareto
+od,od_short,lambda,length_m,length_km,c_proxy_m,c_proxy_km,delta_len_pct,exposure_drop_pct,detour_ratio,restricted_cells,hard_crossings,valid,n_cells,pareto
 luohu_to_futian,罗湖—福田（核心）,0.0,7014.2,7.014,3922.2,3.922,0.0,0.0,1.0508,0,0,True,34,False
 luohu_to_futian,罗湖—福田（核心）,0.1,7014.2,7.014,3241.5,3.242,0.0,17.36,1.0508,0,0,True,34,True
 luohu_to_futian,罗湖—福田（核心）,0.2,7014.2,7.014,3241.5,3.242,0.0,17.36,1.0508,0,0,True,34,False
