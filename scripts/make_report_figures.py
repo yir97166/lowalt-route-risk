@@ -25,16 +25,25 @@ from pyproj import Transformer  # noqa: E402
 from shapely.geometry import box as sbox  # noqa: E402
 
 plt.rcParams.update({
-    "font.sans-serif": ["Microsoft YaHei", "SimHei", "DejaVu Sans"],
+    "font.family": "sans-serif",
+    "font.sans-serif": ["Microsoft YaHei", "SimHei", "Arial", "DejaVu Sans"],
     "axes.unicode_minus": False,
-    "font.size": 9,
-    "axes.titlesize": 10,
-    "axes.labelsize": 9,
-    "xtick.labelsize": 8,
-    "ytick.labelsize": 8,
-    "legend.fontsize": 8,
-    "figure.dpi": 300,
-    "savefig.dpi": 300,
+    "font.size": 7.5,
+    "axes.titlesize": 8,
+    "axes.labelsize": 7.5,
+    "xtick.labelsize": 7,
+    "ytick.labelsize": 7,
+    "legend.fontsize": 7,
+    "legend.frameon": False,
+    "axes.spines.right": False,
+    "axes.spines.top": False,
+    "axes.linewidth": 0.7,
+    "xtick.major.width": 0.6,
+    "ytick.major.width": 0.6,
+    "figure.dpi": 150,
+    "savefig.dpi": 600,
+    "pdf.fonttype": 42,
+    "svg.fonttype": "none",
 })
 
 from src.config import load_config  # noqa: E402
@@ -48,11 +57,11 @@ OUT = ROOT / "figures" / "report"
 OUT.mkdir(parents=True, exist_ok=True)
 
 NAVY = "#1F3864"
-BLUE = "#2E5496"
-CYAN = "#0F7C8C"
-MAGENTA = "#B23A8B"
-RED = "#C0392B"
-GREY = "#6B7280"
+BLUE = "#0072B2"
+CYAN = "#009E73"
+MAGENTA = "#CC79A7"
+RED = "#D55E00"
+GREY = "#7F7F7F"
 
 
 def _mesh_edges(grid, cfg):
@@ -114,7 +123,7 @@ def fig_airspace(cfg, grid):
     ax.set_aspect("equal")
     ax.set_xlabel("东向坐标 (km)")
     ax.set_ylabel("北向坐标 (km)")
-    ax.grid(alpha=0.25, lw=0.5)
+    ax.grid(alpha=0.15, lw=0.4)
     handles = [
         Line2D([], [], color=CYAN, lw=2.2, label="核心 OD 路线（λ=1）"),
         Rectangle((0, 0), 1, 1, facecolor=RED, alpha=0.25, edgecolor=RED,
@@ -126,6 +135,7 @@ def fig_airspace(cfg, grid):
     ax.legend(handles=handles, loc="upper left", frameon=True, framealpha=0.92)
     fig.tight_layout()
     fig.savefig(OUT / "fig1_airspace.png", bbox_inches="tight")
+    fig.savefig(OUT / "fig1_airspace.pdf", bbox_inches="tight")
     plt.close(fig)
 
 
@@ -144,6 +154,7 @@ def fig_population(cfg, grid):
     ax.set_title("WorldPop 2020 人口，聚合到 200 m 网格", fontsize=9)
     fig.tight_layout()
     fig.savefig(OUT / "fig2_population.png", bbox_inches="tight")
+    fig.savefig(OUT / "fig2_population.pdf", bbox_inches="tight")
     plt.close(fig)
 
 
@@ -184,6 +195,7 @@ def fig_routes(cfg, grid):
     ax.legend(loc="upper left", frameon=True, framealpha=0.9)
     fig.tight_layout()
     fig.savefig(OUT / "fig3_routes.png", bbox_inches="tight")
+    fig.savefig(OUT / "fig3_routes.pdf", bbox_inches="tight")
     plt.close(fig)
 
 
@@ -219,9 +231,10 @@ def fig_pareto():
     ax.set_title("核心 OD 的 3 个解：等长 tie-break 与真绕行", fontsize=9)
     ax.set_xlim(6.98, 7.62)
     ax.set_ylim(2490, 4000)
-    ax.grid(alpha=0.3, lw=0.5)
+    ax.grid(alpha=0.15, lw=0.4)
     fig.tight_layout()
     fig.savefig(OUT / "fig4_pareto.png", bbox_inches="tight")
+    fig.savefig(OUT / "fig4_pareto.pdf", bbox_inches="tight")
     plt.close(fig)
 
 

@@ -119,7 +119,7 @@ $$E = C / L$$ {#eq-4}
 
 %% 正文 核心 OD 的三种解见表 4 与图 3。
 
-![](../figures/report/fig3_routes.png){width=10.2cm}
+![](../figures/report/fig3_routes.png){width=9.2cm}
 
 %% 图片题注 图 3　核心 OD：最短可行路线（λ=0，青）与低暴露路线（λ=1，品红）
 
@@ -136,7 +136,7 @@ $$E = C / L$$ {#eq-4}
 
 %% 正文 批量与敏感性的结果见图 4。
 
-![](../figures/report/fig4_pareto.png){width=13.5cm}
+![](../figures/report/fig4_pareto.png){width=11.2cm}
 
 %% 图片题注 图 4　核心 OD 的 3 个解：等长 tie-break（长度不变）与真绕行（+7.09% 距离、−33% 暴露）
 
