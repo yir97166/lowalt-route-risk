@@ -67,7 +67,7 @@ csl: chinese-gb7714-2015-numeric.csl
 
 ![](../figures/report/fig1_airspace.png){width=12.4cm}
 
-%% 图片题注 图 1　空域约束总览：完整净空走廊（约 44×20 km）、AOI 边界与重叠区（37.5%）；核心 OD 局部见图 3
+%% 图片题注 图 1　空域约束总览：完整净空走廊（约 44×20 km）、AOI 边界与重叠区（37.5%）
 
 # 3. 方法
 
