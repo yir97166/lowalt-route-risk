@@ -147,12 +147,33 @@ def main() -> int:
                 by_hash[h] = {"cells": item["cells"], "lambdas": []}
             by_hash[h]["lambdas"].append(item["lambda"])
 
-        for rid, h in enumerate(order, start=1):
-            info = by_hash[h]
-            cells = info["cells"]
-            route = plan_route_weighted(graph, grid, start, goal, exposure, info["lambdas"][0])
-            assert tuple(route.cells) == cells, "同一 hash 的路线不一致"
+        # 按目标值 (长度, C) 合并：不同格心序列但目标值相同的解算同一个解
+        hash_metrics = {}
+        for h in order:
+            cells = by_hash[h]["cells"]
             m = route_metrics(graph, cells, exposure, pop=pop, cell_m=grid.cell_m)
+            hash_metrics[h] = {
+                "length_km": round(m["length_m"] / 1000.0, 3),
+                "c_proxy_m": round(m["c_proxy_m"], 1),
+                "metrics": m,
+            }
+
+        obj_order: list[tuple[float, float]] = []
+        by_obj: dict[tuple[float, float], dict] = {}
+        for h in order:
+            key = (hash_metrics[h]["length_km"], hash_metrics[h]["c_proxy_m"])
+            if key not in by_obj:
+                obj_order.append(key)
+                by_obj[key] = {"hashes": [], "lambdas": []}
+            by_obj[key]["hashes"].append(h)
+            by_obj[key]["lambdas"] += by_hash[h]["lambdas"]
+
+        for rid, key in enumerate(obj_order, start=1):
+            info = by_obj[key]
+            h = info["hashes"][0]
+            cells = by_hash[h]["cells"]
+            m = hash_metrics[h]["metrics"]
+            route = plan_route_weighted(graph, grid, start, goal, exposure, info["lambdas"][0])
             lams = info["lambdas"]
             route_rows.append({
                 "od": od.name,
@@ -162,8 +183,8 @@ def main() -> int:
                 "last_lambda": float(max(lams)),
                 "n_lambda_slots": len(lams),
                 "share_pct": round(len(lams) / len(lambdas) * 100.0, 1),
-                "length_km": round(m["length_m"] / 1000.0, 3),
-                "c_proxy_m": round(m["c_proxy_m"], 1),
+                "length_km": hash_metrics[h]["length_km"],
+                "c_proxy_m": hash_metrics[h]["c_proxy_m"],
                 "intensity": round(m["intensity"], 4),
                 "density_km2": round(m["density_km2"], 1),
                 "detour_ratio": round(route.detour_ratio, 4),
@@ -172,19 +193,22 @@ def main() -> int:
                 "route_hash": h,
             })
 
-        for a, b in zip(order, order[1:]):
-            first_b = min(by_hash[b]["lambdas"])
+        for a, b in zip(obj_order, obj_order[1:]):
+            first_b = min(by_obj[b]["lambdas"])
             trans_rows.append({
                 "od": od.name,
                 "od_short": short_label(od),
-                "from_route": order.index(a) + 1,
-                "to_route": order.index(b) + 1,
+                "from_route": obj_order.index(a) + 1,
+                "to_route": obj_order.index(b) + 1,
                 "swap_at_lambda": float(first_b),
                 "swap_at_lambda_prev": float(first_b - step),
             })
-        panels.append({"od": od.name, "cells_by_route": [(i + 1, by_hash[h]["cells"])
-                                                        for i, h in enumerate(order)]})
+        panels.append({"od": od.name, "cells_by_route": [
+            (i + 1, by_hash[by_obj[k]["hashes"][0]]["cells"]) for i, k in enumerate(obj_order)]})
         total_bad += n_bad
+        print(f"{od.name}: {len(lambdas)} 档 λ · {len(obj_order)} 个不同解（按长度/C 合并） · "
+              f"切换点 {[t['swap_at_lambda'] for t in trans_rows if t['od'] == od.name]} · "
+              f"穿越/无效 {n_bad}")
         print(f"{od.name}: {len(lambdas)} 档 λ · {len(order)} 个不同解 · "
               f"切换点 {[t['swap_at_lambda'] for t in trans_rows if t['od'] == od.name]} · "
               f"穿越/无效 {n_bad}")

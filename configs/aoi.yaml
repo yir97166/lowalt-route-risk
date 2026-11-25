@@ -30,6 +30,8 @@ risk:
   penalty: 1000000.0
 
 data:
+  # real：必须存在真实 WorldPop；synthetic：只允许合成（干净克隆演示）
+  mode: real
   # Day 14：主数据切到真实 WorldPop 2020（中国，600 MB 约束版，100 m）。
   population_tif: data/raw/worldpop/chn_ppp_2020_UNadj_constrained.tif
   synthetic_tif: data/processed/synthetic_population.tif

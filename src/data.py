@@ -19,18 +19,43 @@ from .grid import Grid
 
 
 def pick_population_path(cfg: Config) -> Path:
-    """优先真实数据，其次合成数据；都不存在就给出明确提示。"""
-    candidates = [
-        cfg.resolve(cfg.data[k]) for k in ("population_tif", "synthetic_tif") if cfg.data.get(k)
-    ]
-    for p in candidates:
-        if p.is_file():
-            return p
-    pop = candidates[0] if candidates else cfg.root / "data" / "raw" / "worldpop" / "missing.tif"
-    syn = candidates[1] if len(candidates) > 1 else cfg.root / "data" / "processed" / "synthetic_population.tif"
+    """按配置或环境变量选择人口栅格；不再静默回退。
+
+    mode=real（默认）：必须存在真实 WorldPop 栅格，否则报错并给出下载/切换方法。
+    mode=synthetic：只允许合成栅格（用于没有真实数据的干净克隆）。
+    可用环境变量 LOWALT_DATA_MODE 临时覆盖配置里的 data.mode。
+    """
+    import os
+
+    mode = os.environ.get("LOWALT_DATA_MODE") or str(cfg.data.get("mode", "real"))
+    mode = mode.strip().lower()
+
+    pop = cfg.resolve(cfg.data["population_tif"]) if cfg.data.get("population_tif") else None
+    syn = cfg.resolve(cfg.data["synthetic_tif"]) if cfg.data.get("synthetic_tif") else None
+
+    if mode == "synthetic":
+        if syn is not None and syn.is_file():
+            return syn
+        raise FileNotFoundError(
+            "data.mode=synthetic，但找不到合成人口栅格。\n"
+            "先运行：python scripts/make_synthetic_data.py\n"
+            f"期望路径：{syn}"
+        )
+
+    if mode not in {"real", "synthetic"}:
+        raise ValueError(f"未知 data.mode={mode!r}，只支持 real / synthetic")
+
+    if pop is not None and pop.is_file():
+        return pop
+
     raise FileNotFoundError(
-        "找不到人口栅格。先运行：python scripts/make_synthetic_data.py\n"
-        f"期望路径之一：{pop} 或 {syn}"
+        "找不到真实人口栅格，已停止，避免静默回退到合成数据覆盖结果。\n"
+        f"期望路径：{pop}\n"
+        "二选一：\n"
+        "  1) 下载 WorldPop 2020 中国 100 m 约束版到该路径（约 625 MB，见 README『数据』一节）；\n"
+        "  2) 没有真实数据时显式运行合成演示：\n"
+        "     PowerShell: $env:LOWALT_DATA_MODE=\"synthetic\"\n"
+        "     或把 configs/aoi.yaml 的 data.mode 改为 synthetic（结果会写入同一 results/ 目录）"
     )
 
 
