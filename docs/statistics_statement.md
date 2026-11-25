@@ -43,7 +43,7 @@
 ## 5. 复现与误差控制
 
 - 固定 Python 3.12、依赖版本见 `requirements.txt`；`pytest` 69 项覆盖风险、网格、掩膜、路线、指标、CLI、日志。
-- 全新克隆实测：安装约 2 分钟、全管线 13 步约 118 s；`grid_population.csv` 与 `00_population.png` 的 SHA256 与本地一致。
+- 全新克隆实测：安装约 2 分钟、全管线 real 模式 12 步约 124 s（合成模式 13 步）；`grid_population.csv` 与 `00_population.png` 的 SHA256 与本地一致。
 - 浮点比较用固定容差；CSV 输出保留 3 位小数，避免末位抖动。
 
 ## 6. 写作禁区

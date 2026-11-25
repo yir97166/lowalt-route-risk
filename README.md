@@ -2,7 +2,8 @@
 **Low-Altitude Route Planning with a Population-Exposure Proxy**
 
 > 仓库：<https://github.com/yir97166/lowalt-route-risk>
-> 状态：**v0.3（Day 1–14 完成，2026-11-17 至 11-23）**
+> 状态：**README v1.0（2026-11-25）**
+> 版本映射：代码 tag `v1.0`（commit `7ab525d`）/ 技术报告 `v1.0` / 方法文档 `v1.2`（PLAN 与 `docs/` 的版本号，指迭代轮次，不是成果版本）
 > 用途：港澳硕士申请作品集（低空经济 / UTM 方向），证明「方法—数据—验证」能跑通、能复现。
 >
 > **声明**：本项目计算的是「人口暴露代理值」，不是坠机风险、人员伤亡概率或 SORA 地面风险等级；
@@ -25,7 +26,7 @@
 | λ 扫描 | 核心 OD 81 档（步长 0.025）、其余 4 组各 41 档（步长 0.05）→ 3 个不同解、2 个切换点（0.025 / 0.825）；长度 7.014–7.511 km，C 2,625.9–3,922.2 | `results/pareto_routes.csv` |
 | 分辨率敏感性 | 100 / 200 / 400 m：长度 +5.8% / +7.1% / 0.0%；沿路人口密度 −40.8% / −38.8% / −12.6% | `results/resolution.csv` |
 | 吸附偏移敏感性 | 起终点整体平移 ±0.5 格：C 最大变动 100 m ±1.6% / 200 m ±3.6% / 400 m ±20.8% | `results/origin_shift_summary.csv` |
-| 工程验证 | pytest **69 项**；13 步一键流程 117.9 s；真实数据可复跑 | 见下 |
+| 工程验证 | pytest **69 项**；real 模式 12 步、约 124 s（合成模式 13 步）；真实数据可复跑 | 见下 |
 
 > 人口为 **WorldPop 2020 中国 100 m 约束版**（Day 14 起主数据；`data/raw/worldpop/chn_ppp_2020_UNadj_constrained.tif`）。
 > WorldPop 是建模估计而非普查，绝对数字仍有不确定性；结论只做相对比较，不代表真实风险。
@@ -46,7 +47,7 @@ python -m venv .venv
 .\.venv\Scripts\python.exe -m src.cli all --dry-run
 ```
 
-实测：安装约 2 分钟，全流程 13 步 **117.9 s**，产出 `figures/00–13`、`results/*.csv`、`data/processed/*`。
+实测：安装约 2 分钟，real 模式 12 步 **约 124 s**（合成模式 13 步），产出 `figures/00–13`、`results/*.csv`、`data/processed/*`。
 单独重跑某一步时，脚本彼此独立，见 `scripts/`。
 
 真实数据：`configs/aoi.yaml` 的 `data.population_tif` 指向 `data/raw/worldpop/chn_ppp_2020_UNadj_constrained.tif`；
@@ -79,8 +80,9 @@ $env:LOWALT_DATA_MODE="synthetic"
 - 机场净空保护区按深公规〔2017〕3 号尺寸建模（跑道中线两侧各 10 km、端外 20 km）。
   通告第一条明确「**严禁**……施放……无人机」，因此按**硬禁飞**处理（`hard: true`），
   走廊内 4,706 格全部不可通行；核心案例因此改用净空区外的罗湖—福田。
-  机场周边 4 组扩展 OD 的端点落在走廊内，按「不可达」如实记录——这本身是结论：
-  **现有机场布局下，起降点不宜设在净空保护区内。**
+  机场周边 4 组扩展 OD 的端点落在走廊内，按「不可达」如实记录。
+  **在本研究采用的机场走廊硬约束与当前端点设置下，4 组机场向 OD 不可达；
+  这不是对真实空域边界或起降政策的判断。**
 
 ## 目录
 
@@ -227,7 +229,7 @@ lowalt-route-risk/
 - 新增 `figures/13_airspace_wide.png`：用 EPSG:32649 米制坐标、横纵等比例，完整显示
   机场净空安全区走廊（40 km × 20 km）与 AOI 的位置关系；把 AOI 内受净空约束的部分
   （37.5%）加深标出，避免「AOI 里只看到一小段机场边界」的误读。
-- `scripts/make_airspace_wide.py` 加入 `run_all.py`（第 13 步）；实测 13 步 **117.9 s**。
+- `scripts/make_airspace_wide.py` 加入 `run_all.py`（第 13 步）；实测 real 模式 12 步 **约 124 s**。
 - 中期复核：λ=1 仍为 7.511 km（+7.09%）/ C 2,625.9（−33.05%）；Pareto 3 解 2 切换点
   （0.025 / 0.825）；批量 5 组、测试 64 项均未变。
 - `report/report_zh.md` 建立 6–8 页报告骨架，方法与结果两节已填初稿，待 Day 16 补全。
@@ -239,7 +241,7 @@ lowalt-route-risk/
   来源 WorldPop 2020 中国约束版（100 m），许可 CC BY 4.0，引用 Tatem 2017 Sci Data。
 - `configs/aoi.yaml` 的 `data.population_tif` 已指向该文件；合成数据仅保留为离线 fallback
   （`--synthetic` 与 `data/synthetic_population.tif`）。
-- 重跑 `python -m src.cli all`：13 步 117.9 s，图 00–13 与 `results/*.csv` 全部按真实数据重生成。
+- 重跑 `python -m src.cli all`：real 模式 12 步 124.5 s，图 00–13 与 `results/*.csv` 全部按真实数据重生成。
 - 关键数字变化（合成 → 真实）：
 
 | 指标 | 合成数据 | WorldPop 2020 |

@@ -14,6 +14,8 @@ r"""一键跑完整条可复现流程（合成数据，不联网）。
 """
 from __future__ import annotations
 
+import hashlib
+import os
 import subprocess
 import sys
 import time
@@ -23,12 +25,13 @@ ROOT = Path(__file__).resolve().parents[1]
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
+from src.config import load_config  # noqa: E402
+from src.data import pick_population_path  # noqa: E402
 from src.runlog import setup_logger, timestamp, write_summary  # noqa: E402
 
 LOGS = ROOT / "logs"
 
-STEPS: list[tuple[str, list[str]]] = [
-    ("合成人口栅格", ["scripts/make_synthetic_data.py"]),
+BASE_STEPS: list[tuple[str, list[str]]] = [
     ("人口热力图 + 网格人口表", ["scripts/make_population_map.py"]),
     ("网格 + 空域约束 + 起终点吸附", ["scripts/make_grid_map.py"]),
     ("最短路 baseline（5 组 OD）", ["scripts/make_baseline.py"]),
@@ -44,12 +47,47 @@ STEPS: list[tuple[str, list[str]]] = [
 ]
 
 
+def _sha256(path: Path) -> str:
+    h = hashlib.sha256()
+    with path.open("rb") as fh:
+        for chunk in iter(lambda: fh.read(1 << 20), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
+
+def _git_commit() -> str:
+    try:
+        return subprocess.check_output(
+            ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True, stderr=subprocess.DEVNULL
+        ).strip()
+    except Exception:
+        return "unknown"
+
+
 def main() -> int:
     stamp = timestamp()
     logfile = LOGS / f"run_all_{stamp}.log"
     log = setup_logger(logfile)
+    cfg = load_config(ROOT / "configs" / "aoi.yaml")
+    mode = os.environ.get("LOWALT_DATA_MODE") or cfg.data.get("mode", "real")
+    pop_path = pick_population_path(cfg)
+    meta = {
+        "commit": _git_commit(),
+        "data_mode": mode,
+        "population_file": str(pop_path.relative_to(ROOT)),
+        "population_bytes": pop_path.stat().st_size,
+        "population_sha256": _sha256(pop_path),
+        "python": sys.executable,
+    }
+    STEPS = ([] if mode == "real" else [("合成人口栅格", ["scripts/make_synthetic_data.py"])]) + BASE_STEPS
     log.info("Python: %s", sys.executable)
     log.info("Project: %s", ROOT)
+    log.info("Commit: %s", meta["commit"])
+    log.info("Data mode: %s", mode)
+    log.info("Population: %s (%d bytes)", meta["population_file"], meta["population_bytes"])
+    log.info("Population SHA256: %s", meta["population_sha256"])
+    if mode == "real":
+        log.info("跳过合成栅格生成（real 模式，直接读取 WorldPop）")
 
     steps: list[dict] = []
     total = 0.0
@@ -88,6 +126,7 @@ def main() -> int:
         "started_at": started,
         "finished_at": time.strftime("%Y-%m-%dT%H:%M:%S"),
         "python": sys.executable,
+        "metadata": meta,
         "steps_total": len(STEPS),
         "steps_done": len(steps),
         "elapsed_s": elapsed,
