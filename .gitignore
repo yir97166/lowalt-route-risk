@@ -16,3 +16,6 @@ logs/
 
 # 临时审阅目录（不进仓库）
 今天要看/
+# 报告图源数据（体积小，随仓库分发）
+!data/processed/grid_population.csv
+!data/processed/synthetic_population.tif
