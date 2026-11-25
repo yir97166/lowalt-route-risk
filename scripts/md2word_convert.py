@@ -16,9 +16,9 @@ KEYS = [
 
 REPORT_FIGS = {
     "13_airspace_wide.png": ("figures/report/fig1_airspace.png", "13.0cm"),
-    "00_population.png": ("figures/report/fig2_population.png", "13.5cm"),
-    "03_route_compare.png": ("figures/report/fig3_routes.png", "9.2cm"),
-    "05_pareto.png": ("figures/report/fig4_pareto.png", "11.2cm"),
+    "00_population.png": ("figures/report/fig2_population.png", "12.6cm"),
+    "03_route_compare.png": ("figures/report/fig3_routes.png", "8.8cm"),
+    "05_pareto.png": ("figures/report/fig4_pareto.png", "10.8cm"),
 }
 
 EQUATIONS = [

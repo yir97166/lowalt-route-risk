@@ -80,7 +80,7 @@ lowalt-route-risk/
 ├─ src/                    # config / grid / data / risk / mask / graph / router / viz
 ├─ src/                    # config / grid / data / risk / mask / graph / router / metrics / viz / cli
 ├─ scripts/                # 数据生成、各实验结果、run_all.py 一键复现
-├─ tests/                  # mask / graph / router / risk / grid / metrics / cli，共 58 项
+├─ tests/                  # mask / graph / router / risk / grid / metrics / cli，共 62 项
 ├─ docs/                   # 设计、假设、决策、数据来源、日志、周报说明
 ├─ figures/                # 00–13 核心图、批量图、敏感性图与宽幅空域图
 ├─ results/                # baseline / compare / pareto / resolution / 参数敏感性 CSV
@@ -161,7 +161,7 @@ lowalt-route-risk/
   统一入口、可单阶段重跑、`--dry-run` 只打印命令。
 - 设计原则：CLI 不重复算法，只编排既有脚本；单步仍可独立运行（`scripts/*.py`）。
 - 测试新增 `tests/test_cli.py` 6 项（阶段脚本存在、`all` 委托 run_all、`check` 调 pytest、
-  `--config` 透传、Pareto 两脚本顺序、阶段顺序），`pytest` 合计 **58 项**。
+  `--config` 透传、Pareto 两脚本顺序、阶段顺序），`pytest` 合计 **62 项**。
 - README 快速开始改为 `python -m src.cli all`，并列出单阶段命令。
 
 ## Day 11 记录（2026-11-23，提前）

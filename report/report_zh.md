@@ -13,7 +13,7 @@
 约 25×19 km 范围内建立 200 m 网格（128×98），用 WorldPop 2020 人口栅格构造「人口暴露代理值」（数据与空域约束见图 1、表 2），
 叠加机场净空安全区与两个示意禁飞多边形作为硬约束，比较「最短可行路线」与「低暴露路线」，
 并用 λ 扫描得到距离—暴露的 Pareto 前沿。核心 OD（罗湖—福田，7.01 km）在 λ=1 时多走
-**7.09%** 距离、累计暴露下降 **33.05%**；81 档 λ 只产生 3 个不同解、2 个切换点（0.025 与 0.825）。
+**7.09%** 距离、累计暴露下降 **33.05%**（含等长重选 17.4 个点、真绕行 19.0 个点）。81 档 λ 只产生 3 个不同解、2 个切换点（0.025 与 0.825）。
 结果对网格分辨率、起点偏移与遮蔽系数做了敏感性检查；机场周边起降点落在净空安全区内，
 按硬约束判「不可达」，这本身是本文的一个结论：净空区内不宜设起降点。
 
@@ -69,14 +69,14 @@
 | 数据 | 来源/版本 | 用途 | 限制 |
 |---|---|---|---|
 | 人口栅格 | WorldPop 2020 中国 100 m 约束版（CC BY 4.0，Tatem 2017） | 聚合到 200 m 网格，构造暴露代理 | 建模估计，非普查 |
-| 机场净空安全区 | 深公规〔2017〕3 号 + AIP 2A-1/6A-1/6A-2 跑道尺寸 | 40 km×20 km 走廊，按「严禁」作硬禁飞 | 单中线近似双跑道；2017 年文件未核对修订 |
+| 机场净空安全区 | 深公规〔2017〕3 号 + AIP 2A-1/6A-1/6A-2 跑道尺寸 | 约 44 km×20 km 走廊（跑道 3.8 km + 两端各 20 km），按「严禁」作硬禁飞 | 单中线近似双跑道；2017 年文件未核对修订 |
 | 示意禁飞区 | 手工多边形（梧桐山、深圳水库） | 演示硬约束处理 | 非官方边界 |
-| 起降点 | 手工近似坐标（5 组 OD） | 核心 1 组 + 批量 5 组 | 个别偏移 >100 m，已标注 |
+| 起降点 | 手工近似坐标（9 组 OD，含 4 组反例） | 核心 1 组 + 批量 5 组 + 反例 4 组 | 个别偏移 >100 m，已标注 |
 
 AOI 总人口 517.5 万（5,174,812.7）、p95=1,467 人/格、最大格 1,710 人；硬禁飞 4,982 格（39.7%），
 其中净空走廊 4,706 格。
 
-![图 1　空域约束总览：完整净空走廊（40×20 km）、AOI 边界与重叠区（37.5%）](figures/13_airspace_wide.png)
+![图 1　空域约束总览：完整净空走廊（约 44×20 km）、AOI 边界与重叠区（37.5%）](figures/13_airspace_wide.png)
 
 ## 3. 方法
 
@@ -141,7 +141,7 @@ E = C / L                          # 无量纲
 
 
 81 档 λ 只出现 3 个不同解、2 个切换点：0.025（等长 tie-break）与 0.825（真绕行）。
-因此，λ=1 时长度不变并不能直接解释为「以绕行换取安全」，须先区分等长替换与真实绕行。
+因此，λ 在 0.025–0.80 区间长度不变（等长重选，C 降 17.4%）；λ=1 已进入真绕行区间（+7.09% 距离，C 再降 19.0%）。两者不能合并读成「绕行换安全」。
 
 ### 4.2 批量与敏感性
 
@@ -151,15 +151,16 @@ E = C / L                          # 无量纲
 
 - 5 组走廊外 OD：龙华—福田 +8.51%/−35.38%；布吉—罗湖 0%/−20.25%；
   北站—福田 0%/−1.63%；福田—罗湖 +7.09%/−28.05%；核心同上。
-- 分辨率 100/200/400 m：长度 7.114/7.014/6.731 km；沿路人口密度下降 −40.8%/−38.8%/−12.6%；
-  400 m 两端吸附 229/141 m，只能作稳健性对照。
+- 分辨率 100/200/400 m：长度 7.114/7.014/6.731 km；沿路人口密度下降 −40.8%/−38.8%/−12.6%。
+  400 m 下 λ=1 长度不变、累计暴露只降 13.8%，即距离—暴露权衡在粗网格上消失；400 m 两端吸附 229/141 m，只作稳健性对照。
 - 起点偏移 ±0.5 格：|ΔC| 最大 1.56%/3.57%/20.83%（100/200/400 m）。
 - 遮蔽 s=0.2/0.3/0.4 → 阈值 0.725/0.825/0.950，与 1/(1−s) 预测一致；路线集合不变。
 - 高度 60/90/120 → 阈值 0.825/0.950/1.175，路线几何不变；λ=1 时 60/90 m 会绕、120 m 不绕，
   不能据此说「120 m 更安全」。
+- 安全区 ×0.5/×1.0/×1.5：不可通行 9.3%/39.7%/60.7%；机场向 4 组可达数为 1/0/0（×0.5 时已有 1 组可达），不可把「全部不可达」当固定结论。
 
 
-### 4.4 与外部方法/基线的关系
+### 4.3 与外部方法/基线的关系
 
 本文的对照是**同一张图上的最短路（λ=0）**，属于「内部基线」：它回答「加入暴露项后
 路线是否变化、代价多少」，但不回答「换一个风险模型会不会得到不同路线」。
@@ -190,7 +191,7 @@ E = C / L                          # 无量纲
 
    本文不做推断统计：81 个 λ 档是同一场景的网格扫描，不是独立样本；报告的是确定性结果与参数敏感性范围，不给出 p 值或置信区间。
 
-## 6. 局限（必须写进报告）
+## 6. 局限与未验证项
 
 1. WorldPop 是建模估计，不是人口普查；所有绝对数字不代表深圳真实人口。
 2. 暴露代理只量化「坠落点下方人口」，不含失效概率、坠落轨迹、能量与遮蔽物实测。
@@ -243,42 +244,4 @@ E = C / L                          # 无量纲
 
 ## 参考文献
 
-[1] JARUS. *Guidelines on Specific Operations Risk Assessment (SORA)*, Edition 2.5
-(main body draft, for external consultation), 2024-02.
-
-[2] Primatesta, S., Rizzo, A., la Cour-Harbo, A. Ground Risk Map for Unmanned Aircraft
-in Urban Environments. *Journal of Intelligent & Robotic Systems*, 97:489–509, 2019.
-DOI: 10.1007/s10846-019-01015-z.
-
-[3] Washington, A., Clothier, R. A., Silva, J. A review of unmanned aircraft system
-ground risk models. *Progress in Aerospace Sciences*, 2017.
-DOI: 10.1016/j.paerosci.2017.10.001.
-
-[4] la Cour-Harbo, A. Quantifying Risk of Ground Impact Fatalities for Small Unmanned
-Aircraft. *Journal of Intelligent & Robotic Systems*, 2018.
-DOI: 10.1007/s10846-018-0853-1.
-
-[5] Bertrand, S., Lala, M., Raballand, N. Handling Uncertainties in Ground Risk Buffer
-Computation for Risk Assessment and Preparation of UAV Operations. *ICUAS 2023*.
-DOI: 10.1109/icuas57906.2023.10156086.
-
-[6] Li, X., Zhang, Y., Li, Y., Liu, Y. An Air Route Network Planning Model of Logistics
-UAV Terminal Distribution in Urban Low Altitude Airspace. *Sustainability*, 13(23):13079,
-2021. DOI: 10.3390/su132313079.
-
-[7] Feng, Y., Zhang, Y., Tang, Y., Wang, Y., Feng, Y., Zhong, Y. Digital Low-Altitude
-Airspace UAV Path Planning and Operational Capacity Assessment in Urban Risk Environments.
-*Drones*, 9(5):320, 2025. DOI: 10.3390/drones9050320.
-
-[8] Ford, A. T., McEntee, R. J. Assessment of the Risk to Ground Population Due to an
-Unmanned Aircraft In-Flight Failure. *AIAA ATIO 2010*. DOI: 10.2514/6.2010-9056.
-
-[9] Tatem, A. J. WorldPop, open data for spatial demography. *Scientific Data*, 4:170004,
-2017. DOI: 10.1038/sdata.2017.4.
-
-[10] 深圳市公安局. 关于加强深圳机场净空区域安全保护的通告（深公规〔2017〕3 号），
-2017-03-14.
-
-[11] 国务院、中央军委. 无人驾驶航空器飞行管理暂行条例（第 761 号令），2024-01-01 施行.
-
-
+（由 `report/refs.bib` 经 GB/T 7714-2015 自动生成；见导出后的 Word/PDF 末页。）
