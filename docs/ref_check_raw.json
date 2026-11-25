@@ -1,0 +1,113 @@
+{
+ "primatesta2019": {
+  "title": "Ground Risk Map for Unmanned Aircraft in Urban Environments",
+  "container": "Journal of Intelligent &amp; Robotic Systems",
+  "volume": "97",
+  "issue": "3-4",
+  "page": "489-509",
+  "year": 2019,
+  "authors": [
+   "Stefano Primatesta",
+   "Alessandro Rizzo",
+   "Anders la Cour-Harbo"
+  ],
+  "doi": "10.1007/s10846-019-01015-z"
+ },
+ "washington2017": {
+  "title": "A review of unmanned aircraft system ground risk models",
+  "container": "Progress in Aerospace Sciences",
+  "volume": "95",
+  "issue": null,
+  "page": "24-44",
+  "year": 2017,
+  "authors": [
+   "Achim Washington",
+   "Reece A. Clothier",
+   "Jose Silva"
+  ],
+  "doi": "10.1016/j.paerosci.2017.10.001"
+ },
+ "lacourharbo2018": {
+  "title": "Quantifying Risk of Ground Impact Fatalities for Small Unmanned Aircraft",
+  "container": "Journal of Intelligent &amp; Robotic Systems",
+  "volume": "93",
+  "issue": "1-2",
+  "page": "367-384",
+  "year": 2018,
+  "authors": [
+   "Anders la Cour-Harbo"
+  ],
+  "doi": "10.1007/s10846-018-0853-1"
+ },
+ "bertrand2023": {
+  "title": "Handling Uncertainties in Ground Risk Buffer Computation for Risk Assessment and Preparation of UAV Operations",
+  "container": "2023 International Conference on Unmanned Aircraft Systems (ICUAS)",
+  "volume": null,
+  "issue": null,
+  "page": "191-198",
+  "year": 2023,
+  "authors": [
+   "Sylvain Bertrand",
+   "Stéphanie Lala",
+   "Nicolas Raballand"
+  ],
+  "doi": "10.1109/icuas57906.2023.10156086"
+ },
+ "li2021": {
+  "title": "An Air Route Network Planning Model of Logistics UAV Terminal Distribution in Urban Low Altitude Airspace",
+  "container": "Sustainability",
+  "volume": "13",
+  "issue": "23",
+  "page": "13079",
+  "year": 2021,
+  "authors": [
+   "Shan Li",
+   "Honghai Zhang",
+   "Zhuolun Li",
+   "Hao Liu"
+  ],
+  "doi": "10.3390/su132313079"
+ },
+ "feng2025": {
+  "title": "Digital Low-Altitude Airspace Unmanned Aerial Vehicle Path Planning and Operational Capacity Assessment in Urban Risk Environments",
+  "container": "Drones",
+  "volume": "9",
+  "issue": "5",
+  "page": "320",
+  "year": 2025,
+  "authors": [
+   "Ouge Feng",
+   "Honghai Zhang",
+   "Weibin Tang",
+   "Fei Wang",
+   "Dikun Feng",
+   "Gang Zhong"
+  ],
+  "doi": "10.3390/drones9050320"
+ },
+ "ford2010": {
+  "title": "Assessment of the Risk to Ground Population Due to an Unmanned Aircraft In-Flight Failure",
+  "container": "10th AIAA Aviation Technology, Integration, and Operations (ATIO) Conference",
+  "volume": null,
+  "issue": null,
+  "page": null,
+  "year": 2010,
+  "authors": [
+   "Andrew Ford",
+   "Kevin McEntee"
+  ],
+  "doi": "10.2514/6.2010-9056"
+ },
+ "tatem2017": {
+  "title": "WorldPop, open data for spatial demography",
+  "container": "Scientific Data",
+  "volume": "4",
+  "issue": "1",
+  "page": null,
+  "year": 2017,
+  "authors": [
+   "Andrew J. Tatem"
+  ],
+  "doi": "10.1038/sdata.2017.4"
+ }
+}
