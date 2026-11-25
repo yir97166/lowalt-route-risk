@@ -2,6 +2,8 @@
 
 > 弋昊阳
 > 中国民航大学 交通管理学院
+> College of Air Traffic Management, Civil Aviation University of China
+> 联系邮箱：18778383063@163.com
 > 技术报告 v1.0｜2026-11-25｜共 8 页
 > 本报告为方法演示与可复现性验证，不构成适航审定、运行许可或合规判断，也不判断具体飞行是否获批。
 
