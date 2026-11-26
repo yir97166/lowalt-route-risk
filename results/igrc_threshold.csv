@@ -1,0 +1,5 @@
+threshold,feasible,length_km,reason,max_density,iGRC
+250,False,,端点密度超过阈值,,
+2500,False,,端点密度超过阈值,,
+25000,False,,NetworkXNoPath,,
+250000,True,7.0142135623730955,,40123.0758855812,8.0
