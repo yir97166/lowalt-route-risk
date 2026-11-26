@@ -31,6 +31,12 @@
 > 人口为 **WorldPop 2020 中国 100 m 约束版**（Day 14 起主数据；`data/raw/worldpop/chn_ppp_2020_UNadj_constrained.tif`）。
 > WorldPop 是建模估计而非普查，绝对数字仍有不确定性；结论只做相对比较，不代表真实风险。
 
+### 稳健性三条（2026-11-26）
+
+1. **不依赖 p95 归一化**：改用绝对人口暴露 P（人·米）后，λ=1 路线仍降 P 34.5%；硬避让最高 5% 人口格也恰好 7.511 km、+7.09%。纯 P 最小化会绕到 14.18 km（+102%），只作极端下界。见 `docs/independent_baseline.md`、`results/independent_baseline.csv`。
+2. **iGRC 只宜作准入筛查**：按 SORA Table 2（≤3 m / ≤35 m/s），最短与 λ=1 路线同为 iGRC=8（最高密度约 4.0 万人/km²），压到 iGRC≤7 在核心走廊不可行；它无法区分路线，路线排序仍靠连续暴露 C。见 `docs/igrc_band.md`、`results/igrc_band.csv`。
+3. **λ 阈值不可跨城市迁移**：广州短 OD（7.57 km）首次真绕行在 λ=1.10（深圳 0.825），长 OD（20.19 km）到 λ=2 仍未绕行；两段机制可复现，但阈值必须按城市/OD/网格重标。见 `docs/second_city.md`、`results/second_city_pareto.csv`。
+
 ## 快速开始（一条命令）
 
 ```powershell
