@@ -1,0 +1,45 @@
+project: lowalt-route-risk
+crs_input: EPSG:4326
+crs_metric: EPSG:32648   # 广州位于 UTM 48N（108–114°E），与深圳案例的 49N 不同
+
+aoi:
+  name: guangzhou_central_south
+  bbox: [113.18, 22.96, 113.47, 23.18]
+
+grid:
+  cell_size_m: 200
+  altitudes_m: [60, 90, 120]
+  connectivity: 8
+  vertical_cost_m: 50
+
+risk:
+  population_weight: 1.0
+  severity: 1.0
+  shelter: 0.30
+  population_percentile: 95
+  altitude_factor: {60: 1.00, 90: 0.85, 120: 0.70}
+  lambda_values: [0.0, 0.5, 1.0, 1.5, 2.0]
+  lambda_default: 1.0
+  penalty: 1000000.0
+
+data:
+  mode: real
+  population_tif: data/raw/worldpop/chn_ppp_2020_UNadj_constrained.tif
+  synthetic_tif: data/processed/synthetic_population.tif
+  synthetic_seed: 42
+
+# 第二城市案例不引入官方净空走廊：只检验「人口暴露 + 距离」机制是否稳定，
+# 不与深圳的机场硬约束混在一起。故意留空，blocked 全 False。
+no_fly: []
+
+od_pairs:
+  # 广州东站——广州南站：跨天河/海珠/番禺，约 16 km，含高密度与低密度段。
+  - name: guangzhou_east_to_south
+    role: core
+    origin: [113.3240, 23.1480]
+    destination: [113.2690, 22.9890]
+  # 与深圳核心 OD 长度接近（约 7 km），用于同尺度对照。
+  - name: guangzhou_east_to_haizhu
+    role: batch
+    origin: [113.3240, 23.1480]
+    destination: [113.2640, 23.1170]
