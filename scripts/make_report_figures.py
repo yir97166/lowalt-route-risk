@@ -174,30 +174,51 @@ def fig_routes(cfg, grid):
     def _c(route):
         return route_exposure_m(graph, route.cells, exposure)
 
-    fig, ax = plt.subplots(figsize=(6.5, 4.3))
+    fig, ax = plt.subplots(figsize=(6.5, 4.0))
     ax.imshow(np.log10(pop + 1), cmap="Greys", origin="upper",
               extent=[lon.min(), lon.max(), lat.min(), lat.max()],
               aspect="auto", alpha=0.55, interpolation="nearest")
     for route, color, ls, label in (
-        (base, "#555555", "-", f"λ=0 基线 {base.length_m/1000:.3f} km，C={_c(base):.0f}"),
-        (mid, CYAN, (0, (5, 2)), f"λ=0.5 等长重选 {mid.length_m/1000:.3f} km，C={_c(mid):.0f}"),
-        (det, MAGENTA, "-", f"λ=1.2 真绕行 {det.length_m/1000:.3f} km，C={_c(det):.0f}"),
+        (base, "#444444", "-", f"λ=0 基线 {base.length_m/1000:.3f} km，C={_c(base):.0f}"),
+        (mid, "#009E73", (0, (5, 2)), f"λ=0.5 等长重选 {mid.length_m/1000:.3f} km，C={_c(mid):.0f}"),
+        (det, "#CC79A7", "-", f"λ=1.2 真绕行 {det.length_m/1000:.3f} km，C={_c(det):.0f}"),
     ):
         xs, ys = zip(*[(grid.xs[c], grid.ys[r]) for r, c in route.cells])
         lons, lats = trafo.transform(xs, ys)
-        ax.plot(lons, lats, color=color, lw=2.0, ls=ls, label=label)
-    ax.scatter([origin.lon], [origin.lat], marker="^", s=60, c="#2E7D32",
+        ax.plot(lons, lats, color=color, lw=2.2, ls=ls, label=label, solid_capstyle="round")
+    ax.scatter([origin.lon], [origin.lat], marker="^", s=70, c="#2E7D32",
                edgecolors="white", zorder=5)
-    ax.scatter([dest.lon], [dest.lat], marker="v", s=60, c=BLUE,
+    ax.scatter([dest.lon], [dest.lat], marker="v", s=70, c="#0072B2",
                edgecolors="white", zorder=5)
-    ax.annotate("起点 罗湖", (origin.lon, origin.lat), xytext=(-6, 10), ha="right",
-                textcoords="offset points", fontsize=8)
-    ax.annotate("终点 福田", (dest.lon, dest.lat), xytext=(6, -14), ha="left",
-                textcoords="offset points", fontsize=8)
-    ax.set_xlabel("经度 (°E)")
-    ax.set_ylabel("纬度 (°N)")
-    ax.set_title("核心 OD 的三个解：等长重选与真绕行", fontsize=9)
-    ax.legend(loc="upper left", frameon=True, framealpha=0.9)
+    ax.annotate("起点 罗湖", (origin.lon, origin.lat), xytext=(-8, 12), ha="right",
+                textcoords="offset points", fontsize=10)
+    ax.annotate("终点 福田", (dest.lon, dest.lat), xytext=(8, -14), ha="left",
+                textcoords="offset points", fontsize=10)
+
+    x0, x1 = 113.925, 114.103
+    y0, y1 = 22.515, 22.578
+    ax.set_xlim(x0, x1)
+    ax.set_ylim(y0, y1)
+    ax.set_xlabel("经度 (°E)", fontsize=10)
+    ax.set_ylabel("纬度 (°N)", fontsize=10)
+    ax.tick_params(labelsize=9)
+    ax.set_title("核心 OD 局部放大：三个解在走廊内的差异", fontsize=11)
+
+    inset = ax.inset_axes([0.02, 0.66, 0.30, 0.30])
+    inset.imshow(np.log10(pop + 1), cmap="Greys", origin="upper",
+                 extent=[lon.min(), lon.max(), lat.min(), lat.max()],
+                 aspect="auto", alpha=0.55, interpolation="nearest")
+    for route, color, ls in ((base, "#444444", "-"), (mid, "#009E73", (0, (4, 2))), (det, "#CC79A7", "-")):
+        xs, ys = zip(*[(grid.xs[c], grid.ys[r]) for r, c in route.cells])
+        lons, lats = trafo.transform(xs, ys)
+        inset.plot(lons, lats, color=color, lw=0.7, ls=ls)
+    inset.add_patch(Rectangle((x0, y0), x1 - x0, y1 - y0, fill=False,
+                              edgecolor="#D55E00", lw=1.1))
+    inset.set_xticks([])
+    inset.set_yticks([])
+    inset.set_title("AOI 全景（红框为放大范围）", fontsize=7.5, pad=2)
+
+    ax.legend(loc="lower right", fontsize=8.5, frameon=True, framealpha=0.92)
     fig.tight_layout()
     fig.savefig(OUT / "fig3_routes.png", bbox_inches="tight")
     fig.savefig(OUT / "fig3_routes.pdf", bbox_inches="tight")

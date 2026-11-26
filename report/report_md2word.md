@@ -118,9 +118,9 @@ csl: chinese-gb7714-2015-numeric.csl
 
 %% 正文 核心 OD 的三种解见表 4 与图 3。
 
-![](../figures/report/fig3_routes.png){width=7.6cm}
+![](../figures/report/fig3_routes.png){width=10.0cm}
 
-%% 图片题注 图 3　核心 OD 的三个解：λ=0 基线（灰实线）、λ=0.5 等长重选（绿虚线）、λ=1.2 真绕行（品红实线）
+%% 图片题注 图 3　核心 OD 局部放大：三个解（λ=0 灰实线、λ=0.5 绿虚线、λ=1.2 品红实线）；左上为 AOI 全景与放大范围
 
 %% 表格题注 表 4　核心 OD 的三个解（λ 区间与指标）
 
